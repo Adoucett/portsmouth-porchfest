@@ -4,24 +4,87 @@
   padding: 0;
 }
 
+/* ---- Map page: mobile-first full-viewport layout ---- */
+.map-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - 52px);
+}
+
+.map-page__intro {
+  padding-top: clamp(1rem, 3vw, 1.75rem);
+  padding-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .map-page__title {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+  }
+  .map-page__intro {
+    padding-bottom: 0.5rem;
+  }
+}
+
+.map-shell {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+
+.map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.map-loading[hidden] {
+  display: none;
+}
+
 .map-wrap {
   position: relative;
+  flex: 1;
   width: 100%;
-  height: 92vh;      /* px fallback for any browser that doesn't support svh */
-  height: 92svh;
+  min-height: 420px;
+  height: 100%;
   background: var(--paper-2);
 }
 
 @media (max-width: 767px) {
+  .map-page {
+    min-height: calc(100dvh - 48px);
+  }
+  .map-shell,
   .map-wrap {
-    height: 78vh;
-    height: 78svh;
+    min-height: 55dvh;
   }
 }
 
 .map-canvas {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Mapbox injects .mapboxgl-map inside #map-canvas — must fill container */
+.map-canvas .mapboxgl-map,
+.map-canvas .mapboxgl-canvas-container,
+.map-canvas canvas.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Token-missing notice overlay */
@@ -199,9 +262,28 @@
   gap: 0.75rem;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem var(--pad);
+  padding: 0.75rem var(--pad);
   border-top: var(--line);
   border-bottom: var(--line);
+  background: var(--color-bg);
+  flex-shrink: 0;
+  position: sticky;
+  top: 52px;
+  z-index: 10;
+}
+
+@media (max-width: 767px) {
+  .map-controls {
+    top: 48px;
+    padding: 0.6rem var(--pad);
+  }
+  .map-search {
+    width: 100%;
+  }
+  .map-search input {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .map-controls .filter-bar {

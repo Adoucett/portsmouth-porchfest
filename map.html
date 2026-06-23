@@ -20,28 +20,27 @@
   <body>
     <header id="site-nav"></header>
 
-    <main>
-      <section class="map-page">
-        <div class="map-page__head container">
-          <p class="eyebrow">Schedule &amp; Map</p>
-          <h1 class="map-page__title">Find your next porch.</h1>
-          <div class="schedule-strip" id="schedule-strip"></div>
-        </div>
-
-        <div class="map-controls">
-          <div class="filter-bar" id="zone-pills" role="group" aria-label="Filter performers by zone"></div>
-          <label class="map-search">
-            <span class="visually-hidden">Search bands</span>
-            <input id="band-search" type="search" placeholder="Search bands…" autocomplete="off" />
-          </label>
-        </div>
-
-        <p class="map-status" id="map-status" hidden></p>
-
-        <div class="map-wrap">
-          <div id="map-canvas" class="map-canvas"></div>
-        </div>
+    <main class="map-page">
+      <section class="map-page__intro container">
+        <p class="eyebrow">Schedule &amp; Map</p>
+        <h1 class="map-page__title">Find your next porch.</h1>
+        <div class="schedule-strip" id="schedule-strip"></div>
       </section>
+
+      <div class="map-controls">
+        <div class="filter-bar" id="zone-pills" role="group" aria-label="Filter performers by zone"></div>
+        <label class="map-search">
+          <span class="visually-hidden">Search bands</span>
+          <input id="band-search" type="search" placeholder="Search bands…" autocomplete="off" enterkeyhint="search" />
+        </label>
+      </div>
+
+      <div class="map-shell">
+        <p class="map-loading" id="map-loading">Loading map…</p>
+        <div class="map-wrap">
+          <div id="map-canvas" class="map-canvas" role="application" aria-label="Portsmouth Porchfest performance map"></div>
+        </div>
+      </div>
     </main>
 
     <footer id="site-footer"></footer>

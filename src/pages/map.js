@@ -52,40 +52,44 @@ function wireSearch() {
   input.addEventListener('input', () => mapApi?.setSearchFilter(input.value));
 }
 
-function showSampleNotice() {
-  const host = document.getElementById('map-status');
-  if (!host) return;
-  host.hidden = false;
-  host.innerHTML = `
-    <strong>Preview data.</strong> These are sample performers. Publish the
-    Google Sheet (File → Share → Publish to web → CSV) and the real lineup
-    appears here automatically — no code changes needed.`;
+function setLoading(on) {
+  const el = document.getElementById('map-loading');
+  if (el) el.hidden = !on;
 }
 
 async function boot() {
   renderScheduleStrip();
   renderFilterBar();
-
-  // Dynamically import Mapbox so its ~500KB only loads on this page.
-  mapApi = await import('../mapbox.js');
-  const map = mapApi.initMap({
-    container: '#map-canvas',
-    token: import.meta.env.VITE_MAPBOX_TOKEN,
-  });
-
   wireSearch();
+  setLoading(true);
 
-  if (!map) return; // token missing — notice already shown by initMap
+  try {
+    mapApi = await import('../mapbox.js');
+    const map = await mapApi.initMap({
+      container: '#map-canvas',
+      token: import.meta.env.VITE_MAPBOX_TOKEN,
+    });
 
-  // Paint sample data immediately so the map is never empty while the sheet loads.
-  mapApi.setBandData(rowsToGeoJSON(SAMPLE_BANDS));
+    if (!map) {
+      setLoading(false);
+      return;
+    }
 
-  // Then fetch the live sheet and upgrade silently if it has rows.
-  const liveGeojson = await fetchBands();
-  if (liveGeojson.features.length) {
-    mapApi.setBandData(liveGeojson);
-  } else {
-    showSampleNotice();
+    // Map is fully loaded — paint data.
+    const liveGeojson = await fetchBands();
+    const geojson = liveGeojson.features.length
+      ? liveGeojson
+      : rowsToGeoJSON(SAMPLE_BANDS);
+
+    mapApi.setBandData(geojson);
+    setLoading(false);
+  } catch (err) {
+    console.error('[map page] boot failed:', err);
+    setLoading(false);
+    const canvas = document.getElementById('map-canvas');
+    if (canvas) {
+      canvas.innerHTML = `<div class="map-notice"><div class="map-notice__card"><h3>Map failed to load</h3><p>${err.message}</p></div></div>`;
+    }
   }
 }
 
