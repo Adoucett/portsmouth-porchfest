@@ -9,7 +9,7 @@ export const FESTIVAL = {
   dateLabel: 'Saturday, September 19, 2026',
   timeLabel: '12:00 – 6:00 PM',
   location: 'Portsmouth, NH',
-  email: 'portsmouthporchfest@gmail.com',
+  email: 'hello@ portsmouthporchfest.com',
   instagram: 'https://www.instagram.com/portsmouthporchfest/',
   facebook: 'https://www.facebook.com/portsmouthporchfest/',
   // Live Google Form — musicians, hosts, volunteers, steering committee interest.

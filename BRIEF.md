@@ -165,7 +165,7 @@ https://www.signupgenius.com/go/10C0E4EA4AB2BA0FAC52-57534585-porchfest#/
 
 Instagram: https://www.instagram.com/portsmouthporchfest/
 Facebook:  https://www.facebook.com/portsmouthporchfest/
-Contact:   portsmouthporchfest@gmail.com
+Contact:   hello@portsmouthporchfest.com
 
 Google Sheet (band locations):
 https://docs.google.com/spreadsheets/d/1weSzOU4g6wzhw9vO72wQoymLMF034t_XekOLCwDYck4/edit?gid=459018803
