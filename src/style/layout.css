@@ -249,7 +249,13 @@
 
 @media (min-width: 720px) {
   .involve-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .involve-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -260,6 +266,28 @@
 
 .involve-card h3 {
   margin-bottom: 0.5rem;
+}
+
+/* Embedded Google Form on Get Involved */
+.form-embed {
+  margin-top: 2.5rem;
+  border: var(--line);
+  background: var(--color-bg-raised);
+  overflow: hidden;
+}
+
+.form-embed iframe {
+  display: block;
+  width: 100%;
+  min-height: clamp(520px, 75svh, 960px);
+  border: 0;
+}
+
+.form-embed__note {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  max-width: 52ch;
 }
 
 /* ---- Contact rows ---- */
