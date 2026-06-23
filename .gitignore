@@ -74,6 +74,10 @@ web_modules/
 no_commit/
 **/no_commit/
 
+# Editor / CLI machine-local state — never commit.
+.cursor/
+.vercel/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
