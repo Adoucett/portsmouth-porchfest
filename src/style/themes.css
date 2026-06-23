@@ -18,38 +18,72 @@ body.theme-2026 {
 
 /* ===================== This Year page (themed) ===================== */
 .ty {
-  /* full-bleed textured wash behind the whole themed page */
-  background: var(--theme-wash) center top / cover no-repeat fixed,
-    var(--color-bg);
+  /* Content sits on calm paper; the wash is concentrated in the hero below */
+  background: var(--color-bg);
 }
 
-@media (max-width: 767px) {
-  .ty {
-    background-attachment: scroll;
-  }
-}
-
-/* Hero ------------------------------------------------------------- */
+/* Hero — immersive full-bleed wash on desktop, fading into the paper below */
 .ty-hero {
   position: relative;
+  width: 100%;
   text-align: center;
-  padding: clamp(1.5rem, 4vw, 3rem) var(--pad) clamp(2rem, 6vw, 4rem);
-  max-width: 960px;
-  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 3rem) var(--pad) clamp(3rem, 8vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: linear-gradient(
+      180deg,
+      rgba(245, 241, 232, 0.28) 0%,
+      rgba(245, 241, 232, 0) 22%,
+      rgba(245, 241, 232, 0) 60%,
+      rgba(245, 241, 232, 0.94) 100%
+    ),
+    var(--theme-wash);
+  background-size: cover;
+  background-position: center;
+}
+
+@media (min-width: 768px) {
+  .ty-hero {
+    min-height: calc(100svh - 64px);
+    justify-content: center;
+  }
 }
 
 .ty-hero__banner {
   display: block;
-  width: min(680px, 100%);
-  margin: 0 auto clamp(0.5rem, 2vw, 1rem);
-  filter: drop-shadow(0 2px 6px rgba(26, 26, 24, 0.18));
+  width: min(760px, 100%);
+  margin: 0 auto clamp(0.25rem, 1.5vw, 0.75rem);
+  filter: drop-shadow(0 2px 6px rgba(26, 26, 24, 0.16));
+  will-change: transform;
+}
+
+.ty-hero__shipwrap {
+  width: min(620px, 88%);
+  margin: 0 auto clamp(1rem, 3vw, 1.75rem);
+  will-change: transform;
 }
 
 .ty-hero__ship {
   display: block;
-  width: min(440px, 82%);
-  margin: 0 auto clamp(1rem, 3vw, 1.75rem);
-  filter: drop-shadow(0 6px 18px rgba(26, 26, 24, 0.22));
+  width: 100%;
+  filter: drop-shadow(0 14px 30px rgba(26, 26, 24, 0.28));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ty-hero__ship {
+    animation: ty-bob 7s ease-in-out infinite;
+  }
+}
+
+@keyframes ty-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-0.4deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0.4deg);
+  }
 }
 
 .ty-deets {
@@ -57,10 +91,11 @@ body.theme-2026 {
   font-weight: 400;
   line-height: 0.92;
   letter-spacing: 0.01em;
-  font-size: clamp(1.8rem, 7vw, 3.4rem);
+  font-size: clamp(1.9rem, 6vw, 3.8rem);
   color: var(--theme-ink);
   text-transform: uppercase;
   margin: 0 auto 0.4rem;
+  will-change: transform, opacity;
 }
 
 .ty-deets span {
@@ -82,6 +117,19 @@ body.theme-2026 {
   justify-content: center;
 }
 
+/* Scroll-reveal (progressive enhancement; static if JS/motion off) ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .ty-reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+  }
+  .ty-reveal.is-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Themed section shell -------------------------------------------- */
 .ty-section {
   max-width: var(--maxw);
@@ -100,11 +148,10 @@ body.theme-2026 {
   margin-bottom: 1.5rem;
 }
 
-/* Paper card so themed content stays legible over the wash */
+/* Subtle panel for grouped themed content */
 .ty-card {
-  background: color-mix(in srgb, var(--paper-50) 92%, transparent);
+  background: var(--color-bg-sunken);
   border: var(--line);
-  backdrop-filter: blur(2px);
 }
 
 /* Latest updates --------------------------------------------------- */
@@ -117,7 +164,8 @@ body.theme-2026 {
 
 .ty-update {
   background: var(--color-bg-raised);
-  padding: 1.1rem 1.25rem;
+  padding: 1.1rem 1.25rem 1.2rem;
+  border-left: 3px solid var(--color-accent);
 }
 
 .ty-update__date {
@@ -129,8 +177,17 @@ body.theme-2026 {
   margin-bottom: 0.3rem;
 }
 
+.ty-update__headline {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  margin-bottom: 0.25rem;
+}
+
 .ty-update__text {
-  font-size: 0.98rem;
+  font-size: 0.96rem;
+  color: var(--color-text-subtle);
   max-width: var(--maxw-prose);
 }
 

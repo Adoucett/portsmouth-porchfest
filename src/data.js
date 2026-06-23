@@ -47,3 +47,36 @@ export function rowsToGeoJSON(rows) {
 function emptyCollection() {
   return { type: 'FeatureCollection', features: [] };
 }
+
+// Fetches the published "updates" sheet tab and returns micropost objects
+// { date, headline, body }. Resolves to [] on any error so the caller can fall
+// back to the static ANNOUNCEMENTS list. Order is preserved (sheet = source of
+// truth for ordering — newest first).
+export function fetchAnnouncements(url) {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve([]);
+      return;
+    }
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (h) => h.trim().toLowerCase(),
+      complete: ({ data }) => {
+        const rows = (data || [])
+          .map((r) => ({
+            date: (r.date ?? '').trim(),
+            headline: (r.headline ?? r.title ?? '').trim(),
+            body: (r.body ?? r.text ?? '').trim(),
+          }))
+          .filter((r) => r.headline || r.body);
+        resolve(rows);
+      },
+      error: (err) => {
+        console.warn('[data] Could not load updates sheet:', err);
+        resolve([]);
+      },
+    });
+  });
+}

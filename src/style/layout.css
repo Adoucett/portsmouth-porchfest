@@ -49,11 +49,21 @@
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  /* Dark badge so the cream wordmark reads with strong contrast on the paper nav */
+  background: var(--ink-800);
+  padding: 0.42rem 0.7rem;
+  border-radius: var(--radius-md);
+  line-height: 0;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.site-nav__brand:hover {
+  transform: translateY(-1px);
 }
 
 .site-nav__logo {
   display: block;
-  height: clamp(30px, 4.5vw, 40px);
+  height: clamp(22px, 3.2vw, 30px);
   width: auto;
 }
 

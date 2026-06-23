@@ -51,23 +51,35 @@ export const THEME = {
   mapWaterTint: '#a7c6d6',
 };
 
-// "Latest updates" shown on the This Year page (newest first). Plain, editable.
+// "Latest updates" microposts on the This Year page (newest first).
+//
+// PUBLISHING: the organizers can edit these live without code. Add a tab named
+// "updates" to the published Google Sheet with columns: date, headline, body.
+// Publish that tab (File → Share → Publish to web → that sheet → CSV), then paste
+// its URL into SHEET_ANNOUNCEMENTS_CSV_URL below. Until that's set, the static
+// fallback list here is used.
+export const SHEET_ANNOUNCEMENTS_CSV_URL = '';
+
 export const ANNOUNCEMENTS = [
   {
-    date: 'This year',
-    text: 'Save the date — Saturday, September 19, 2026, 12–6 PM across three Portsmouth neighborhoods (Richards Ave, Wibird St, Goodwin Park).',
+    date: 'Save the date',
+    headline: 'Saturday, September 19, 2026',
+    body: 'Noon to 6 PM across three Portsmouth neighborhoods — Richards Ave, Wibird St, and Goodwin Park.',
   },
   {
     date: 'Artwork',
-    text: 'The 2026 poster has landed — original art by Chad Turner (@muzzythewop).',
+    headline: 'The 2026 poster has landed',
+    body: 'Original art by Chad Turner (@muzzythewop) — the Porch Ship sets the tone for the year.',
   },
   {
     date: 'Signups open',
-    text: 'Musician, porch-host, and volunteer signups are open — one form covers all three.',
+    headline: 'Play, host, or volunteer',
+    body: 'Musician, porch-host, and volunteer signups are open — one quick form covers all three.',
   },
   {
     date: 'Lineup',
-    text: 'Performers are being confirmed and added to the live map as they come in. Check back often.',
+    headline: 'Performers rolling in',
+    body: 'Acts are being confirmed and added to the live map as they come in. Check back often.',
   },
 ];
 

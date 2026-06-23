@@ -30,8 +30,10 @@
     <main class="ty">
       <section class="ty-hero">
         <img class="ty-hero__banner" id="ty-banner" alt="Portsmouth Porchfest 2026" />
-        <img class="ty-hero__ship" id="ty-ship" alt="The Porch Ship — illustration by Chad Turner" />
-        <p class="ty-deets">
+        <div class="ty-hero__shipwrap" id="ty-shipwrap">
+          <img class="ty-hero__ship" id="ty-ship" alt="The Porch Ship — illustration by Chad Turner" />
+        </div>
+        <p class="ty-deets" id="ty-deets">
           <span>Saturday · Sept 19 2026</span>
           <span>12 – 6 PM · Portsmouth NH</span>
         </p>
@@ -42,12 +44,12 @@
         </div>
       </section>
 
-      <section class="ty-section">
+      <section class="ty-section ty-reveal">
         <h2 class="ty-section__head">Latest updates</h2>
         <div class="ty-updates" id="ty-updates"></div>
       </section>
 
-      <section class="ty-section">
+      <section class="ty-section ty-reveal">
         <h2 class="ty-section__head">On the lineup</h2>
         <div class="ty-lineup" id="ty-lineup"></div>
         <p style="margin-top: 1.25rem">
@@ -55,7 +57,7 @@
         </p>
       </section>
 
-      <section class="ty-section">
+      <section class="ty-section ty-reveal">
         <h2 class="ty-section__head">This year’s poster</h2>
         <div class="ty-poster ty-card" style="padding: clamp(1rem, 3vw, 2rem)">
           <img class="ty-poster__img" id="ty-poster" alt="Portsmouth Porchfest 2026 poster" />
@@ -72,7 +74,7 @@
         </div>
       </section>
 
-      <section class="ty-section">
+      <section class="ty-section ty-reveal">
         <h2 class="ty-section__head">Follow along</h2>
         <div class="ty-foot">
           <a class="btn btn--ghost" data-festival-link="instagram" target="_blank" rel="noopener">Instagram</a>
