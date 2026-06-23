@@ -2,68 +2,144 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Portsmouth Porchfest 2026</title>
-    <meta
-      name="description"
-      content="A free, grassroots neighborhood music festival in Portsmouth, NH. Saturday, September 19, 2026."
-    />
+    <meta name="description" content="A free, grassroots neighborhood music festival in Portsmouth, NH. Saturday, September 19, 2026." />
     <meta name="theme-color" content="#F5F1E8" />
     <meta name="robots" content="noindex" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..900,0..100,0..1&family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <style>
-      * { margin: 0; box-sizing: border-box; }
+      *, *::before, *::after { box-sizing: border-box; }
+      * { margin: 0; }
+
+      :root {
+        --paper: #f5f1e8;
+        --ink:   #1a1a18;
+        --muted: #8c8577;
+        --accent: #c4622d;
+      }
+
+      html, body {
+        height: 100%;
+      }
+
       body {
-        background: #f5f1e8;
-        color: #1a1a18;
+        background: var(--paper);
+        color: var(--ink);
         font-family: 'Inter', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Full-viewport hero with the Portsmouth map baked in as a static asset.
+         multiply blend warms the cool map grays into the paper palette. */
+      .hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         min-height: 100svh;
         display: grid;
         place-items: center;
         padding: 2rem;
-        text-align: center;
       }
-      .wrap { max-width: 640px; }
+
+      .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background: url('src/assets/images/portsmouth-map.jpg') center 42% / cover no-repeat;
+        mix-blend-mode: multiply;
+        opacity: 0.58;
+      }
+
+      /* Gradient scrim: heavier at top/bottom edges, lightest in the middle
+         so the map geography reads but text remains crisp. */
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: linear-gradient(
+          180deg,
+          rgba(245,241,232,0.65) 0%,
+          rgba(245,241,232,0.18) 35%,
+          rgba(245,241,232,0.18) 65%,
+          rgba(245,241,232,0.72) 100%
+        );
+      }
+
+      .hero__content {
+        text-align: center;
+        max-width: 720px;
+      }
+
       .eyebrow {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 600;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #8c8577;
+        color: var(--muted);
+        margin-bottom: 1rem;
       }
+
       h1 {
-        font-family: 'Playfair Display', Georgia, serif;
+        font-family: 'Fraunces', Georgia, serif;
         font-weight: 900;
-        font-size: clamp(2.75rem, 12vw, 6rem);
-        line-height: 0.95;
-        margin: 0.75rem 0 1.25rem;
+        font-size: clamp(3rem, 13vw, 8rem);
+        line-height: 0.9;
+        letter-spacing: -0.02em;
+        font-optical-sizing: auto;
+        margin-bottom: 1.5rem;
       }
-      p { font-size: 1.1rem; line-height: 1.6; }
-      .accent { color: #c4622d; font-weight: 600; }
+
       .rule {
-        width: 48px;
+        width: 40px;
         height: 2px;
-        background: #1a1a18;
-        margin: 1.75rem auto;
+        background: var(--ink);
+        margin: 0 auto 1.5rem;
       }
-      a { color: #1a1a18; }
+
+      .date {
+        font-family: 'Fraunces', Georgia, serif;
+        font-weight: 700;
+        font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+        color: var(--accent);
+        letter-spacing: -0.01em;
+        margin-bottom: 0.5rem;
+      }
+
+      .tagline {
+        font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .attribution {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.75rem;
+        font-size: 0.6rem;
+        color: var(--muted);
+        opacity: 0.7;
+        letter-spacing: 0.02em;
+      }
     </style>
   </head>
   <body>
-    <main class="wrap">
-      <p class="eyebrow">Portsmouth, New Hampshire</p>
-      <h1>Portsmouth Porchfest</h1>
-      <div class="rule"></div>
-      <p>
-        A free neighborhood music festival.<br />
-        <span class="accent">Saturday, September 19, 2026 · 12–6 PM</span>
-      </p>
-      <p style="margin-top: 1rem; color: #8c8577">Something's coming.</p>
+    <main class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">Portsmouth, New Hampshire</p>
+        <h1>Portsmouth<br />Porchfest</h1>
+        <div class="rule"></div>
+        <p class="date">Saturday, September 19, 2026 &nbsp;·&nbsp; 12–6 PM</p>
+        <p class="tagline">A free grassroots music festival in the neighborhoods.<br />Something's coming.</p>
+      </div>
+      <p class="attribution">Map © Mapbox © OpenStreetMap</p>
     </main>
   </body>
 </html>
