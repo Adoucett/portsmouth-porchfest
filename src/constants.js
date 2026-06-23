@@ -9,7 +9,7 @@ export const FESTIVAL = {
   dateLabel: 'Saturday, September 19, 2026',
   timeLabel: '12:00 – 6:00 PM',
   location: 'Portsmouth, NH',
-  email: 'hello@ portsmouthporchfest.com',
+  email: 'hello@portsmouthporchfest.com',
   instagram: 'https://www.instagram.com/portsmouthporchfest/',
   facebook: 'https://www.facebook.com/portsmouthporchfest/',
   // Live Google Form — musicians, hosts, volunteers, steering committee interest.
@@ -75,7 +75,7 @@ export const INFO_BOOTHS = [
 export const MAP_DEFAULTS = {
   center: [-70.760873, 43.071629],
   zoom: 14.71,
-  minZoom: 12,
+  minZoom: 13,
   maxZoom: 18,
   // Lock panning to a box around Portsmouth so the map can never wander off
   // to another part of the world. [ [swLng, swLat], [neLng, neLat] ].
