@@ -77,13 +77,16 @@ async function boot() {
 
   if (!map) return; // token missing — notice already shown by initMap
 
-  // Live sheet first; fall back to sample data until the sheet is published.
-  let geojson = await fetchBands();
-  if (!geojson.features.length) {
-    geojson = rowsToGeoJSON(SAMPLE_BANDS);
+  // Paint sample data immediately so the map is never empty while the sheet loads.
+  mapApi.setBandData(rowsToGeoJSON(SAMPLE_BANDS));
+
+  // Then fetch the live sheet and upgrade silently if it has rows.
+  const liveGeojson = await fetchBands();
+  if (liveGeojson.features.length) {
+    mapApi.setBandData(liveGeojson);
+  } else {
     showSampleNotice();
   }
-  mapApi.setBandData(geojson);
 }
 
 boot();

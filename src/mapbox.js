@@ -95,7 +95,7 @@ export function initMap({ container, token }) {
         'text-size': 12,
         'text-offset': [0, 1.2],
         'text-anchor': 'top',
-        'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+        'text-font': ['DIN Pro Medium', 'DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
       },
       paint: {
         'text-color': '#1a1a18',

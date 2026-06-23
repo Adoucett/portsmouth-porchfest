@@ -76,9 +76,7 @@ export const MAP_DEFAULTS = {
     [-70.82, 43.03],
     [-70.69, 43.11],
   ],
-  // Swap for a custom Studio style URL when ready. The light v11 base is a
-  // clean, warm-ish starting point that reads well with the paper palette.
-  style: 'mapbox://styles/mapbox/light-v11',
+  style: 'mapbox://styles/adoucett/cm6fvb62v005s01s50vq64sb6',
 };
 
 // Homepage copy (from the organizers). Edit freely.
@@ -91,10 +89,9 @@ export const ABOUT = {
     'To create a community that is connected, inspired, and transformed by the music shared and the fellowship enjoyed by every one of us.',
 };
 
-// Public Google Sheet (CSV export). gid is the specific tab.
-export const SHEET_ID = '1weSzOU4g6wzhw9vO72wQoymLMF034t_XekOLCwDYck4';
-export const SHEET_GID = '459018803';
-export const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+// Public Google Sheet — published CSV export URL.
+// Julia updates the sheet; the map auto-refreshes on next page load. No deploys needed.
+export const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8iEZ_CcqThjS2ty2-BQMIjpSpMmFTF31A71dKzlIj6C2h85cPHWsQcZtWP1bEZ5ansx889225qXxi/pub?output=csv';
 
 // FAQ content. Replace/expand with the organizers' real answers.
 export const FAQ = [
