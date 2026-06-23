@@ -13,7 +13,7 @@ function cleanUrlsDev() {
       server.middlewares.use((req, _res, next) => {
         if (req.url) {
           const [path, query] = req.url.split('?');
-          if (path !== '/' && !path.includes('.')) {
+          if (path !== '/' && !path.includes('.') && !path.startsWith('/@') && !path.startsWith('/__')) {
             req.url = path.replace(/\/$/, '') + '.html' + (query ? `?${query}` : '');
           }
         }
