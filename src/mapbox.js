@@ -1,5 +1,4 @@
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import {
   MAP_DEFAULTS,
   ZONE_COLORS,
@@ -10,6 +9,7 @@ import {
 const DESKTOP_BREAKPOINT = 768;
 const SOURCE_ID = 'bands';
 const LAYER_ID = 'band-points';
+const LOAD_TIMEOUT_MS = 12000;
 
 let map = null;
 let mapReady = false;
@@ -38,26 +38,68 @@ function showMapMessage(container, title, body) {
   container.appendChild(el);
 }
 
-// Returns a Promise that resolves when the map is fully loaded and ready for data.
+function setupLayers() {
+  if (!map || mapReady) return;
+  mapReady = true;
+
+  if (!map.getSource(SOURCE_ID)) {
+    map.addSource(SOURCE_ID, { type: 'geojson', data: latestData });
+  }
+
+  if (!map.getLayer(LAYER_ID)) {
+    map.addLayer({
+      id: LAYER_ID,
+      type: 'circle',
+      source: SOURCE_ID,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 8, 16, 14],
+        'circle-color': zoneColorExpression(),
+        'circle-stroke-width': 2.5,
+        'circle-stroke-color': '#F5F1E8',
+      },
+    });
+  }
+
+  addInfoBooths();
+
+  map.on('click', LAYER_ID, (e) => {
+    if (e.features?.[0]) openDetails(e.features[0]);
+  });
+  map.on('mouseenter', LAYER_ID, () => (map.getCanvas().style.cursor = 'pointer'));
+  map.on('mouseleave', LAYER_ID, () => (map.getCanvas().style.cursor = ''));
+
+  applyFilter();
+  if (latestData.features.length) fitToData();
+  map.resize();
+}
+
+// Returns a Promise<map|null> — resolves when style + layers are ready, or on timeout/error.
 export function initMap({ container, token }) {
   const el = typeof container === 'string'
     ? document.querySelector(container)
     : container;
 
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
     if (!el) {
       console.error('[map] container not found:', container);
-      resolve(null);
+      finish(null);
       return;
     }
 
     if (!token || !token.startsWith('pk.') || token.includes('your_public_token')) {
       showMapMessage(
         el,
-        'Map needs a Mapbox token',
-        'Add <code>VITE_MAPBOX_TOKEN</code> in Vercel → Settings → Environment Variables (Production + Preview), then redeploy.'
+        'Mapbox token missing',
+        'Set <code>VITE_MAPBOX_TOKEN</code> in Vercel → Settings → Environment Variables (Production + Preview), then redeploy.'
       );
-      resolve(null);
+      finish(null);
       return;
     }
 
@@ -73,13 +115,12 @@ export function initMap({ container, token }) {
         maxZoom: MAP_DEFAULTS.maxZoom,
         maxBounds: MAP_DEFAULTS.maxBounds,
         attributionControl: false,
-        // Mobile: one-finger pan, two-finger zoom — doesn't hijack page scroll.
         touchPitch: false,
       });
     } catch (err) {
       console.error('[map] constructor failed:', err);
       showMapMessage(el, 'Map failed to start', String(err.message || err));
-      resolve(null);
+      finish(null);
       return;
     }
 
@@ -95,50 +136,41 @@ export function initMap({ container, token }) {
       'top-right'
     );
 
+    map.on('load', () => {
+      setupLayers();
+      finish(map);
+    });
+
     map.on('error', (e) => {
-      console.error('[map] runtime error:', e.error);
-      // Token URL restrictions are the #1 cause of a blank map on staging.
-      if (String(e.error?.message || '').match(/401|403|Forbidden|Unauthorized/i)) {
+      console.error('[map] error:', e.error);
+      const msg = String(e.error?.message || e.error || '');
+      if (msg.match(/401|403|Forbidden|Unauthorized/i)) {
         showMapMessage(
           el,
-          'Map blocked by token restrictions',
-          'In Mapbox → Access Tokens → URL restrictions, add <code>https://*.vercel.app</code> and your production domain, then save.'
+          'Token blocked this domain',
+          'Mapbox → Access Tokens → URL restrictions → add <code>https://*.vercel.app</code> and save.'
         );
+        finish(null);
       }
     });
 
-    map.on('load', () => {
-      mapReady = true;
+    // Safety net: if 'load' never fires, try anyway after timeout.
+    setTimeout(() => {
+      if (settled) return;
+      console.warn('[map] load timeout — forcing setup');
+      if (map?.isStyleLoaded()) {
+        setupLayers();
+        finish(map);
+      } else {
+        showMapMessage(
+          el,
+          'Map timed out',
+          'Style failed to load. Check your Mapbox token and URL restrictions, then redeploy.'
+        );
+        finish(null);
+      }
+    }, LOAD_TIMEOUT_MS);
 
-      map.addSource(SOURCE_ID, { type: 'geojson', data: latestData });
-
-      map.addLayer({
-        id: LAYER_ID,
-        type: 'circle',
-        source: SOURCE_ID,
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 8, 16, 14],
-          'circle-color': zoneColorExpression(),
-          'circle-stroke-width': 2.5,
-          'circle-stroke-color': '#F5F1E8',
-        },
-      });
-
-      addInfoBooths();
-
-      map.on('click', LAYER_ID, (e) => {
-        if (e.features?.[0]) openDetails(e.features[0]);
-      });
-      map.on('mouseenter', LAYER_ID, () => (map.getCanvas().style.cursor = 'pointer'));
-      map.on('mouseleave', LAYER_ID, () => (map.getCanvas().style.cursor = ''));
-
-      applyFilter();
-      if (latestData.features.length) fitToData();
-      map.resize();
-      resolve(map);
-    });
-
-    // Force Mapbox to re-measure after layout paints (fixes 0-height container bugs).
     requestAnimationFrame(() => map?.resize());
     window.addEventListener('resize', () => map?.resize());
   });
@@ -163,11 +195,13 @@ function addInfoBooths() {
 
 export function setBandData(geojson) {
   latestData = geojson || latestData;
-  if (!map || !mapReady) return;
+  if (!map) return;
+  if (!mapReady) return; // will apply on setupLayers via latestData
   const src = map.getSource(SOURCE_ID);
-  if (!src) return;
-  src.setData(latestData);
-  fitToData();
+  if (src) {
+    src.setData(latestData);
+    fitToData();
+  }
 }
 
 function fitToData() {
@@ -176,7 +210,11 @@ function fitToData() {
   if (!feats.length) return;
   const bounds = new mapboxgl.LngLatBounds();
   feats.forEach((f) => bounds.extend(f.geometry.coordinates));
-  map.fitBounds(bounds, { padding: { top: 80, bottom: 80, left: 40, right: 40 }, maxZoom: 15.5, duration: 700 });
+  map.fitBounds(bounds, {
+    padding: { top: 80, bottom: 80, left: 40, right: 40 },
+    maxZoom: 15.5,
+    duration: 700,
+  });
 }
 
 export function setZoneFilter(zoneId) {
@@ -204,7 +242,7 @@ function applyFilter() {
 function openDetails(feature) {
   const html = detailHTML(feature.properties || {}, feature.geometry.coordinates);
   if (window.innerWidth >= DESKTOP_BREAKPOINT) {
-    new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '320px', className: 'band-popup' })
+    new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '320px' })
       .setLngLat(feature.geometry.coordinates)
       .setHTML(html)
       .addTo(map);

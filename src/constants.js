@@ -66,8 +66,8 @@ export const INFO_BOOTHS = [
 
 // Map defaults centered on Portsmouth, NH.
 export const MAP_DEFAULTS = {
-  center: [-70.7626, 43.0718],
-  zoom: 13.5,
+  center: [-70.760873, 43.071629],
+  zoom: 14.71,
   minZoom: 12,
   maxZoom: 18,
   // Lock panning to a box around Portsmouth so the map can never wander off

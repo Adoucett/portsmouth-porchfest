@@ -1,11 +1,16 @@
+import 'mapbox-gl/dist/mapbox-gl.css';
+import {
+  initMap,
+  setBandData,
+  setZoneFilter,
+  setSearchFilter,
+} from '../mapbox.js';
 import { initSite } from '../site.js';
 import { ZONES } from '../constants.js';
 import { fetchBands, rowsToGeoJSON } from '../data.js';
 import { SAMPLE_BANDS } from '../sample-data.js';
 
 initSite();
-
-let mapApi = null;
 
 function renderScheduleStrip() {
   const strip = document.getElementById('schedule-strip');
@@ -35,26 +40,37 @@ function renderFilterBar() {
     .join('');
 
   bar.querySelectorAll('.filter-pill').forEach((btn) => {
-    btn.addEventListener('click', () => selectZone(btn.dataset.zone));
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach((b) => {
+        b.setAttribute('aria-pressed', String(b.dataset.zone === btn.dataset.zone));
+      });
+      setZoneFilter(btn.dataset.zone);
+    });
   });
-}
-
-function selectZone(zoneId) {
-  document.querySelectorAll('.filter-pill').forEach((btn) => {
-    btn.setAttribute('aria-pressed', String(btn.dataset.zone === zoneId));
-  });
-  mapApi?.setZoneFilter(zoneId);
 }
 
 function wireSearch() {
   const input = document.getElementById('band-search');
   if (!input) return;
-  input.addEventListener('input', () => mapApi?.setSearchFilter(input.value));
+  input.addEventListener('input', () => setSearchFilter(input.value));
 }
 
 function setLoading(on) {
   const el = document.getElementById('map-loading');
   if (el) el.hidden = !on;
+}
+
+function showFatalError(msg) {
+  setLoading(false);
+  const canvas = document.getElementById('map-canvas');
+  if (!canvas) return;
+  canvas.innerHTML = `
+    <div class="map-notice">
+      <div class="map-notice__card">
+        <h3>Map failed to load</h3>
+        <p>${msg}</p>
+      </div>
+    </div>`;
 }
 
 async function boot() {
@@ -63,33 +79,23 @@ async function boot() {
   wireSearch();
   setLoading(true);
 
+  const token = import.meta.env.VITE_MAPBOX_TOKEN;
+
   try {
-    mapApi = await import('../mapbox.js');
-    const map = await mapApi.initMap({
-      container: '#map-canvas',
-      token: import.meta.env.VITE_MAPBOX_TOKEN,
-    });
-
-    if (!map) {
-      setLoading(false);
-      return;
-    }
-
-    // Map is fully loaded — paint data.
-    const liveGeojson = await fetchBands();
-    const geojson = liveGeojson.features.length
-      ? liveGeojson
-      : rowsToGeoJSON(SAMPLE_BANDS);
-
-    mapApi.setBandData(geojson);
+    const map = await initMap({ container: '#map-canvas', token });
     setLoading(false);
+
+    if (!map) return;
+
+    // Load band data — live sheet first, sample fallback.
+    let geojson = await fetchBands();
+    if (!geojson.features.length) {
+      geojson = rowsToGeoJSON(SAMPLE_BANDS);
+    }
+    setBandData(geojson);
   } catch (err) {
-    console.error('[map page] boot failed:', err);
-    setLoading(false);
-    const canvas = document.getElementById('map-canvas');
-    if (canvas) {
-      canvas.innerHTML = `<div class="map-notice"><div class="map-notice__card"><h3>Map failed to load</h3><p>${err.message}</p></div></div>`;
-    }
+    console.error('[map page]', err);
+    showFatalError(err.message || 'Unknown error — check browser console.');
   }
 }
 
