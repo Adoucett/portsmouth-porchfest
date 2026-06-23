@@ -44,7 +44,15 @@ export function initMap({ container, token }) {
   const el = typeof container === 'string'
     ? document.querySelector(container)
     : container;
-  if (!el) return null;
+  if (!el) {
+    console.error('[map] container not found:', container);
+    return null;
+  }
+  // Guarantee the container has height before Mapbox measures it.
+  // Mapbox silently produces a blank canvas if the element is 0px tall.
+  if (!el.offsetHeight) {
+    el.style.height = '100svh';
+  }
 
   if (!token || !token.startsWith('pk.') || token.includes('your_public_token')) {
     showTokenNotice(el);
@@ -52,17 +60,27 @@ export function initMap({ container, token }) {
   }
 
   mapboxgl.accessToken = token;
-  map = new mapboxgl.Map({
-    container: el,
-    style: MAP_DEFAULTS.style,
-    center: MAP_DEFAULTS.center,
-    zoom: MAP_DEFAULTS.zoom,
-    minZoom: MAP_DEFAULTS.minZoom,
-    maxZoom: MAP_DEFAULTS.maxZoom,
-    maxBounds: MAP_DEFAULTS.maxBounds, // locks panning to Portsmouth
-    cooperativeGestures: true, // avoids hijacking page scroll on mobile
-  });
 
+  try {
+    map = new mapboxgl.Map({
+      container: el,
+      style: MAP_DEFAULTS.style,
+      center: MAP_DEFAULTS.center,
+      zoom: MAP_DEFAULTS.zoom,
+      minZoom: MAP_DEFAULTS.minZoom,
+      maxZoom: MAP_DEFAULTS.maxZoom,
+      maxBounds: MAP_DEFAULTS.maxBounds,
+      attributionControl: false,
+    });
+  } catch (err) {
+    console.error('[map] mapboxgl.Map constructor failed:', err);
+    showTokenNotice(el);
+    return null;
+  }
+
+  map.on('error', (e) => console.error('[map] runtime error:', e.error));
+
+  map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
   map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
   map.addControl(new mapboxgl.GeolocateControl({
     positionOptions: { enableHighAccuracy: true },
