@@ -14,6 +14,7 @@ const LABEL_ID = 'band-labels';
 
 let map = null;
 let activeZone = 'all';
+let searchText = '';
 let latestData = { type: 'FeatureCollection', features: [] };
 
 // Builds a Mapbox "match" expression so each point is colored by its zone.
@@ -56,6 +57,9 @@ export function initMap({ container, token }) {
     style: MAP_DEFAULTS.style,
     center: MAP_DEFAULTS.center,
     zoom: MAP_DEFAULTS.zoom,
+    minZoom: MAP_DEFAULTS.minZoom,
+    maxZoom: MAP_DEFAULTS.maxZoom,
+    maxBounds: MAP_DEFAULTS.maxBounds, // locks panning to Portsmouth
     cooperativeGestures: true, // avoids hijacking page scroll on mobile
   });
 
@@ -102,12 +106,12 @@ export function initMap({ container, token }) {
 
     addInfoBooths();
 
-    const onPoint = (e) => openDetails(e.features[0]);
-    map.on('click', LAYER_ID, onPoint);
+    map.on('click', LAYER_ID, (e) => openDetails(e.features[0]));
     map.on('mouseenter', LAYER_ID, () => (map.getCanvas().style.cursor = 'pointer'));
     map.on('mouseleave', LAYER_ID, () => (map.getCanvas().style.cursor = ''));
 
     applyFilter();
+    fitToData();
   });
 
   return map;
@@ -123,7 +127,7 @@ function addInfoBooths() {
       .setLngLat(booth.coords)
       .setPopup(
         new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(
-          `<strong>${booth.name}</strong><br>${booth.note}`
+          `<strong>${esc(booth.name)}</strong><br>${esc(booth.note)}`
         )
       )
       .addTo(map);
@@ -139,11 +143,12 @@ export function setBandData(geojson) {
 }
 
 function fitToData() {
+  if (!map) return;
   const feats = latestData.features;
   if (!feats.length) return;
   const bounds = new mapboxgl.LngLatBounds();
   feats.forEach((f) => bounds.extend(f.geometry.coordinates));
-  map.fitBounds(bounds, { padding: 64, maxZoom: 15, duration: 600 });
+  map.fitBounds(bounds, { padding: 72, maxZoom: 15.5, duration: 700 });
 }
 
 export function setZoneFilter(zoneId) {
@@ -151,42 +156,62 @@ export function setZoneFilter(zoneId) {
   applyFilter();
 }
 
+export function setSearchFilter(text) {
+  searchText = (text || '').trim().toLowerCase();
+  applyFilter();
+}
+
 function applyFilter() {
   if (!map || !map.getLayer(LAYER_ID)) return;
-  const filter = activeZone === 'all'
-    ? null
-    : ['==', ['get', 'zone'], activeZone];
+  const clauses = ['all'];
+  if (activeZone !== 'all') {
+    clauses.push(['==', ['get', 'zone'], activeZone]);
+  }
+  if (searchText) {
+    clauses.push(['>=', ['index-of', searchText, ['downcase', ['coalesce', ['get', 'name'], '']]], 0]);
+  }
+  const filter = clauses.length > 1 ? clauses : null;
   map.setFilter(LAYER_ID, filter);
   map.setFilter(LABEL_ID, filter);
 }
 
 // Detail UI: bottom sheet on mobile, anchored popup on desktop.
 function openDetails(feature) {
-  const p = feature.properties || {};
+  const html = detailHTML(feature.properties || {}, feature.geometry.coordinates);
   if (window.innerWidth >= DESKTOP_BREAKPOINT) {
     new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '320px' })
       .setLngLat(feature.geometry.coordinates)
-      .setHTML(detailHTML(p))
+      .setHTML(html)
       .addTo(map);
   } else {
-    openBottomSheet(detailHTML(p));
+    openBottomSheet(html);
   }
 }
 
-function detailHTML(p) {
+function detailHTML(p, coords) {
+  const [lng, lat] = coords || [];
   const time = [p.time_start, p.time_end].filter(Boolean).join(' – ');
-  const rows = [
+  const directions = Number.isFinite(lat) && Number.isFinite(lng)
+    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    : null;
+  const img = p.image || p.photo;
+
+  const parts = [
+    img && `<img class="detail__img" src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()" />`,
+    `<div class="detail__body">`,
     p.genre && `<span class="detail__genre">${esc(p.genre)}</span>`,
-    time && `<p class="detail__time">${esc(time)}</p>`,
-    p.zone && `<p class="detail__zone">Zone ${esc(p.zone)}</p>`,
+    `<h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>`,
+    time && `<p class="detail__time">${esc(time)}${p.zone ? ` · Zone ${esc(p.zone)}` : ''}</p>`,
     p.address && `<p class="detail__addr">${esc(p.address)}</p>`,
     p.description && `<p class="detail__desc">${esc(p.description)}</p>`,
-    p.link &&
-      `<a class="detail__link" href="${esc(p.link)}" target="_blank" rel="noopener">Listen / more →</a>`,
-  ]
-    .filter(Boolean)
-    .join('');
-  return `<div class="detail"><h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>${rows}</div>`;
+    `<div class="detail__actions">`,
+    directions && `<a class="detail__btn" href="${directions}" target="_blank" rel="noopener">Get directions</a>`,
+    p.link && `<a class="detail__btn detail__btn--ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Listen</a>`,
+    `</div>`,
+    `</div>`,
+  ];
+
+  return `<div class="detail">${parts.filter(Boolean).join('')}</div>`;
 }
 
 function openBottomSheet(html) {

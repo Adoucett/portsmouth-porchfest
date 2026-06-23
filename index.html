@@ -10,18 +10,9 @@
     />
     <meta name="theme-color" content="#F5F1E8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
-    <!-- Open Graph -->
     <meta property="og:title" content="Portsmouth Porchfest 2026" />
-    <meta
-      property="og:description"
-      content="Free neighborhood music festival · Portsmouth, NH · Sept 19, 2026"
-    />
+    <meta property="og:description" content="Free neighborhood music festival · Portsmouth, NH · Sept 19, 2026" />
     <meta property="og:type" content="website" />
-
-    <!-- Fonts: Fraunces (display, w/ optical + soft/wonk axes) + Inter (body).
-         font-display: swap avoids blocking render. See src/style/fonts.css to
-         switch to self-hosted woff2 before launch. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -30,22 +21,9 @@
     />
   </head>
   <body>
-    <!-- NAV -->
-    <header class="site-nav">
-      <a href="#top" class="site-nav__brand">
-        <span class="site-nav__mark" data-icon="mark" aria-hidden="true"></span>
-        <span>Portsmouth Porchfest</span>
-      </a>
-      <nav>
-        <ul class="site-nav__links">
-          <li><a href="#map">Map</a></li>
-          <li><a href="#info">Info</a></li>
-          <li><a href="#faq">FAQ</a></li>
-        </ul>
-      </nav>
-    </header>
+    <header id="site-nav"></header>
 
-    <main id="top">
+    <main>
       <!-- HERO + COUNTDOWN -->
       <section class="hero container">
         <p class="eyebrow" data-festival="dateLabel"></p>
@@ -56,85 +34,54 @@
         </div>
         <div id="countdown" class="countdown" aria-label="Countdown to the festival"></div>
         <div class="cta__buttons">
-          <a href="#map" class="btn">View the map</a>
-          <a href="#getinvolved" class="btn btn--ghost">Get involved</a>
+          <a href="/map" class="btn">View the map</a>
+          <a href="/get-involved" class="btn btn--ghost">Get involved</a>
         </div>
       </section>
 
-      <!-- MAP -->
-      <section id="map" class="section map-section">
-        <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter performers by zone"></div>
-        <div class="map-wrap">
-          <div id="map-canvas" class="map-canvas"></div>
-        </div>
-      </section>
-
-      <!-- ABOUT -->
-      <section id="info" class="section container">
+      <!-- WHAT WE ARE -->
+      <section class="section container">
         <div class="section__head">
-          <p class="eyebrow">About</p>
+          <p class="eyebrow">What we are</p>
           <h2>Music on every porch.</h2>
         </div>
         <div class="prose">
-          <p>
-            Portsmouth Porchfest is a free, community-run music festival. For one
-            afternoon, porches, lawns, and stoops across the neighborhood become
-            stages for local musicians. Wander from house to house, discover
-            something new, and bring the whole family.
-          </p>
-          <p data-festival="parking"></p>
+          <p id="what-we-are"></p>
         </div>
       </section>
 
-      <!-- SCHEDULE -->
+      <!-- MISSION / VISION -->
       <section class="section container">
-        <div class="section__head">
-          <p class="eyebrow">Schedule</p>
-          <h2>Three zones, all afternoon.</h2>
+        <div class="two-col">
+          <div>
+            <p class="eyebrow">Our mission</p>
+            <p class="lead" id="mission"></p>
+          </div>
+          <div>
+            <p class="eyebrow">Our vision</p>
+            <p class="lead" id="vision"></p>
+          </div>
         </div>
-        <div class="zone-grid" id="zone-grid"></div>
       </section>
 
-      <!-- FAQ -->
-      <section id="faq" class="section container">
-        <div class="section__head">
-          <p class="eyebrow">Questions</p>
-          <h2>Good to know.</h2>
-        </div>
-        <div id="faq-list"></div>
-      </section>
-
-      <!-- GET INVOLVED -->
-      <section id="getinvolved" class="section container">
+      <!-- FOLLOW -->
+      <section class="section container">
         <div class="cta">
           <div class="section__head">
-            <p class="eyebrow">Get involved</p>
-            <h2>Play, volunteer, or just show up.</h2>
+            <p class="eyebrow">Stay in the loop</p>
+            <h2>Follow along.</h2>
           </div>
-          <p>
-            Performer spots and volunteer slots fill up fast. Sign up to play a
-            porch or lend a hand on the day of the festival.
-          </p>
           <div class="cta__buttons">
-            <a class="btn" id="cta-signup" href="#" target="_blank" rel="noopener">Sign up to play</a>
-            <a class="btn btn--ghost" id="cta-volunteer" href="#" target="_blank" rel="noopener">Volunteer</a>
+            <a class="btn" href="/map">See the lineup map</a>
+            <a class="btn btn--ghost" data-festival-link="instagram" target="_blank" rel="noopener">Instagram</a>
+            <a class="btn btn--ghost" data-festival-link="facebook" target="_blank" rel="noopener">Facebook</a>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="site-footer">
-      <nav class="site-footer__links">
-        <a id="footer-email" href="#"><span data-icon="email" aria-hidden="true"></span>Email</a>
-        <a id="footer-ig" href="#" target="_blank" rel="noopener"><span data-icon="instagram" aria-hidden="true"></span>Instagram</a>
-        <a id="footer-fb" href="#" target="_blank" rel="noopener"><span data-icon="facebook" aria-hidden="true"></span>Facebook</a>
-      </nav>
-      <p class="site-footer__fine">
-        Portsmouth Porchfest · Portsmouth, NH · A free community event.
-      </p>
-    </footer>
+    <footer id="site-footer"></footer>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/pages/home.js"></script>
   </body>
 </html>

@@ -67,10 +67,28 @@ export const INFO_BOOTHS = [
 // Map defaults centered on Portsmouth, NH.
 export const MAP_DEFAULTS = {
   center: [-70.7626, 43.0718],
-  zoom: 14,
+  zoom: 13.5,
+  minZoom: 12,
+  maxZoom: 18,
+  // Lock panning to a box around Portsmouth so the map can never wander off
+  // to another part of the world. [ [swLng, swLat], [neLng, neLat] ].
+  maxBounds: [
+    [-70.82, 43.03],
+    [-70.69, 43.11],
+  ],
   // Swap for a custom Studio style URL when ready. The light v11 base is a
   // clean, warm-ish starting point that reads well with the paper palette.
   style: 'mapbox://styles/mapbox/light-v11',
+};
+
+// Homepage copy (from the organizers). Edit freely.
+export const ABOUT = {
+  whatWeAre:
+    'Portsmouth Porchfest is a free grassroots music festival that takes place in our neighborhoods once a year and features music by a diverse array of local musicians performing in many genres.',
+  mission:
+    'To strengthen the Portsmouth community, build connections between neighbors, and provide exposure for local artists from a diverse array of backgrounds.',
+  vision:
+    'To create a community that is connected, inspired, and transformed by the music shared and the fellowship enjoyed by every one of us.',
 };
 
 // Public Google Sheet (CSV export). gid is the specific tab.
