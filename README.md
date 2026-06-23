@@ -44,13 +44,17 @@ Never commit directly to `main`.
 
 ## No-code editing — Google Sheets is the CMS
 
-Organizers edit the site by editing a Google Sheet. Each **tab** drives a different
-part of the site; the page re-reads the published CSV on load, so changes appear
-with **no code and no deploy**. Each tab must be published once:
-**File → Share → Publish to web → select that sheet/tab → CSV → Publish.** Then the
-tab's CSV URL goes in [src/constants.js](src/constants.js).
+Organizers edit the site by editing one master Google Sheet. Each **tab** drives a
+different part of the site; the page re-reads that tab's CSV on load, so changes
+appear with **no code and no deploy**.
 
-**Sheet:** https://docs.google.com/spreadsheets/d/1weSzOU4g6wzhw9vO72wQoymLMF034t_XekOLCwDYck4
+**Master sheet:** https://docs.google.com/spreadsheets/d/1y9lyzBSTLm2IMGUn0z2x9ZGi900ndmdzkX7X52jogeg
+
+**How it's read:** we pull each tab **by name** via the Google "gviz" CSV endpoint
+(`.../gviz/tq?tqx=out:csv&sheet=<tabName>`), wired in [src/constants.js](src/constants.js).
+No per-tab "publish to web" step is needed — the doc just has to be link-shared as
+**"Anyone with the link: Viewer"** (keep edit access to organizers only). Reading by
+name means we always get `live`, never the `draft` working tab.
 
 ### Tab: `live` → the map + lineup  (`SHEET_CSV_URL`)
 One row per **performance/set**. Columns:
@@ -59,10 +63,13 @@ One row per **performance/set**. Columns:
 - A porch with no act yet: set `name` to `Lineup TBD`, leave `zone`/times blank (it shows as a neutral "porch confirmed" pin).
 - lat/lng: Google Maps → right-click the spot → click the coordinates.
 - Pre-seeded venue list lives in [data/porchfest-lineup-2026.csv](data/porchfest-lineup-2026.csv). When merging it into the sheet, **keep any existing `image` URLs** — don't overwrite curated rows.
+- Keep a `draft` tab for staging edits; only `live` is shown on the site.
 
 ### Tab: `updates` → "Latest updates" microposts  (`SHEET_ANNOUNCEMENTS_CSV_URL`)
-One row per post (newest first). Columns: `date`, `headline`, `body`.
-Until this tab's CSV URL is set in constants, the page falls back to the static `ANNOUNCEMENTS` list.
+Add a tab named exactly **`updates`** with column headers `date`, `headline`, `body`
+(one row per post, newest first). It populates the "Latest updates" section
+automatically. Until the tab exists, the page falls back to the static
+`ANNOUNCEMENTS` list in [src/constants.js](src/constants.js).
 
 ### Future tabs (same pattern, not built yet)
 Editable hero copy / an announcement banner could each be their own tab + CSV URL — the model scales without new infrastructure.

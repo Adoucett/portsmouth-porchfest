@@ -61,12 +61,13 @@ export const THEME = {
 
 // "Latest updates" microposts on the This Year page (newest first).
 //
-// PUBLISHING: the organizers can edit these live without code. Add a tab named
-// "updates" to the published Google Sheet with columns: date, headline, body.
-// Publish that tab (File → Share → Publish to web → that sheet → CSV), then paste
-// its URL into SHEET_ANNOUNCEMENTS_CSV_URL below. Until that's set, the static
-// fallback list here is used.
-export const SHEET_ANNOUNCEMENTS_CSV_URL = '';
+// PUBLISHING (no code): in the master sheet, add a tab named exactly "updates"
+// with the column headers: date, headline, body. New rows appear on the site on
+// next load. Read live by tab name via the gviz CSV endpoint (the doc just needs
+// link-sharing = "Anyone with the link: Viewer"). Until the tab exists, the
+// fetch returns no usable rows and the static ANNOUNCEMENTS fallback is shown.
+export const SHEET_ANNOUNCEMENTS_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/1y9lyzBSTLm2IMGUn0z2x9ZGi900ndmdzkX7X52jogeg/gviz/tq?tqx=out:csv&sheet=updates';
 
 export const ANNOUNCEMENTS = [
   {
@@ -165,11 +166,12 @@ export const ABOUT = {
 // restrictions in the Mapbox dashboard rather than secrecy.
 export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-// Public Google Sheet — published CSV export of the "live" tab (gid=0).
-// Julia updates the sheet; the map auto-refreshes on next page load. No deploys
-// needed. NOTE: must target the LIVE tab specifically (single=true&gid=0), not
-// the whole document, so the draft tab is never pulled.
-export const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8iEZ_CcqThjS2ty2-BQMIjpSpMmFTF31A71dKzlIj6C2h85cPHWsQcZtWP1bEZ5ansx889225qXxi/pub?gid=0&single=true&output=csv';
+// Master Google Sheet (doc 1y9ly...). Read the "live" tab BY NAME via the gviz
+// CSV endpoint so we always pull live (never the "draft" tab) from the one doc
+// the organizers edit. The map auto-refreshes on next page load — no deploys.
+// Requires the doc to be link-shared as Viewer ("Anyone with the link").
+export const SHEET_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/1y9lyzBSTLm2IMGUn0z2x9ZGi900ndmdzkX7X52jogeg/gviz/tq?tqx=out:csv&sheet=live';
 
 // FAQ content drawn from the organizers' 2026 FAQ. Keep answers in sync with the
 // committee's master doc.
