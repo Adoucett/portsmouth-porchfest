@@ -1,6 +1,8 @@
 import { initSite } from '../site.js';
 import {
   THEME,
+  ABOUT,
+  FESTIVAL,
   ANNOUNCEMENTS,
   SHEET_ANNOUNCEMENTS_CSV_URL,
   ZONE_COLORS,
@@ -11,20 +13,31 @@ import { fetchBands, fetchAnnouncements } from '../data.js';
 import { SAMPLE_BANDS } from '../sample-data.js';
 
 import bannerUrl from '../assets/2026/banner.png';
+import bannerMobileUrl from '../assets/2026/banner-1200.png';
 import shipUrl from '../assets/2026/ship.png';
+import shipMobileUrl from '../assets/2026/ship-900.png';
 import posterUrl from '../assets/2026/poster.jpg';
-import posterPdf from '../assets/2026/poster.pdf';
+import posterDownloadUrl from '../assets/2026/poster-2026.jpg';
 
 initSite();
 
-// --- Hero art + theme copy ---
-setSrc('ty-banner', bannerUrl);
-setSrc('ty-ship', shipUrl);
+// --- Hero art (responsive: phones get the lighter files) + theme copy ---
+setImg('ty-banner', bannerUrl, `${bannerMobileUrl} 1200w, ${bannerUrl} 2000w`, '(min-width: 768px) 740px, 100vw');
+setImg('ty-ship', shipUrl, `${shipMobileUrl} 900w, ${shipUrl} 1600w`, '(min-width: 768px) 660px, 92vw');
 setSrc('ty-poster', posterUrl);
 setText('ty-tagline', THEME.tagline);
 
+// --- Spirit: verbal inspiration + mission/vision + goal ---
+setText('ty-verbal', THEME.verbal);
+setText('ty-mission', ABOUT.mission);
+setText('ty-vision', ABOUT.vision);
+setText('ty-goal', THEME.goal);
+
 const dl = document.getElementById('ty-poster-dl');
-if (dl) dl.href = posterPdf;
+if (dl) {
+  dl.href = posterDownloadUrl;
+  dl.setAttribute('download', 'Portsmouth-Porchfest-2026-Poster.jpg');
+}
 
 const artist = document.getElementById('ty-artist');
 if (artist) {
@@ -34,8 +47,31 @@ if (artist) {
 
 renderUpdates();
 renderLineup();
+renderInstagram();
 initParallax();
 initReveal();
+
+// --- Instagram: live widget if configured, else a Follow CTA (never broken) ---
+function renderInstagram() {
+  const host = document.getElementById('ty-instagram');
+  if (!host) return;
+  const id = THEME.instagramWidget;
+  if (id) {
+    // LightWidget embed (swap for a Behold web component if you prefer that tool).
+    host.innerHTML = `<iframe src="https://cdn.lightwidget.com/widgets/${esc(id)}.html" scrolling="no" allowtransparency="true" class="lightwidget-widget" style="width:100%;border:0;overflow:hidden;"></iframe>`;
+    if (!document.getElementById('lightwidget-script')) {
+      const s = document.createElement('script');
+      s.id = 'lightwidget-script';
+      s.src = 'https://cdn.lightwidget.com/widgets/lightwidget.js';
+      document.body.appendChild(s);
+    }
+  } else {
+    host.innerHTML = `<div class="ty-ig-cta">
+      <p class="ty-update__text">Lineup drops, porch reveals, and day-of updates land on our Instagram first.</p>
+      <a class="btn" href="${esc(FESTIVAL.instagram)}" target="_blank" rel="noopener">Follow @portsmouthporchfest</a>
+    </div>`;
+  }
+}
 
 // --- Latest updates (live "updates" sheet tab first, static fallback) ---
 async function renderUpdates() {
@@ -90,18 +126,18 @@ async function renderLineup() {
 function initParallax() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const shipwrap = document.getElementById('ty-shipwrap');
-  const banner = document.getElementById('ty-banner');
   const deets = document.getElementById('ty-deets');
   let ticking = false;
 
   function frame() {
     const y = window.scrollY || 0;
     const desk = window.innerWidth >= 768;
-    if (shipwrap) shipwrap.style.transform = desk ? `translate3d(0, ${y * 0.18}px, 0)` : '';
-    if (banner) banner.style.transform = desk ? `translate3d(0, ${y * -0.06}px, 0)` : '';
+    // Ship RISES as you scroll (and never sinks over the content below), capped
+    // so it doesn't fly off on long pages. Banner is left to its CSS sway.
+    if (shipwrap) shipwrap.style.transform = desk ? `translate3d(0, ${Math.max(-160, -y * 0.16)}px, 0)` : '';
     if (deets) {
-      deets.style.transform = desk ? `translate3d(0, ${y * 0.1}px, 0)` : '';
-      deets.style.opacity = desk ? String(Math.max(0, 1 - y / 520)) : '';
+      deets.style.transform = desk ? `translate3d(0, ${-y * 0.05}px, 0)` : '';
+      deets.style.opacity = desk ? String(Math.max(0, 1 - y / 480)) : '';
     }
     ticking = false;
   }
@@ -147,6 +183,14 @@ function zoneLabel(zoneId) {
 function setSrc(id, src) {
   const el = document.getElementById(id);
   if (el) el.src = src;
+}
+
+function setImg(id, src, srcset, sizes) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.src = src;
+  if (srcset) el.srcset = srcset;
+  if (sizes) el.sizes = sizes;
 }
 
 function setText(id, text) {

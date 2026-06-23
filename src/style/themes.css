@@ -12,7 +12,7 @@ body.theme-2026 {
   --color-accent: var(--blue-500);
   --color-accent-ink: var(--blue-700);
   --color-on-accent: var(--paper-50);
-  --theme-wash: url('../assets/2026/wash-blue.jpg');
+  --theme-wash: url('../assets/2026/wash-blue-1280.jpg');
   --theme-ink: var(--ink-900);
 }
 
@@ -44,45 +44,71 @@ body.theme-2026 {
 }
 
 @media (min-width: 768px) {
+  body.theme-2026 {
+    --theme-wash: url('../assets/2026/wash-blue-2560.jpg');
+  }
   .ty-hero {
     min-height: calc(100svh - 64px);
     justify-content: center;
   }
 }
 
+/* Banner ribbon sits in front; the ship's masts tuck up behind its lower edge
+   so the two read as one illustration. */
 .ty-hero__banner {
   display: block;
-  width: min(760px, 100%);
-  margin: 0 auto clamp(0.25rem, 1.5vw, 0.75rem);
+  width: min(740px, 100%);
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
   filter: drop-shadow(0 2px 6px rgba(26, 26, 24, 0.16));
   will-change: transform;
 }
 
 .ty-hero__shipwrap {
-  width: min(620px, 88%);
-  margin: 0 auto clamp(1rem, 3vw, 1.75rem);
+  position: relative;
+  z-index: 1;
+  width: min(660px, 92%);
+  /* pull up so masts/flag overlap into the banner's empty lower ribbon */
+  margin: clamp(-3rem, -5vw, -1.5rem) auto clamp(1rem, 3vw, 1.75rem);
   will-change: transform;
 }
 
 .ty-hero__ship {
   display: block;
   width: 100%;
+  transform-origin: 50% 88%;
   filter: drop-shadow(0 14px 30px rgba(26, 26, 24, 0.28));
 }
 
+/* Playful interplay: the ship rocks like it's at sea while the banner gently
+   sways out of phase. Both gated behind reduced-motion. */
 @media (prefers-reduced-motion: no-preference) {
   .ty-hero__ship {
-    animation: ty-bob 7s ease-in-out infinite;
+    animation: ty-rock 6.5s ease-in-out infinite;
+  }
+  .ty-hero__banner {
+    animation: ty-sway 9s ease-in-out infinite;
   }
 }
 
-@keyframes ty-bob {
+@keyframes ty-rock {
   0%,
   100% {
-    transform: translateY(0) rotate(-0.4deg);
+    transform: translateY(0) rotate(-1.2deg);
   }
   50% {
-    transform: translateY(-12px) rotate(0.4deg);
+    transform: translateY(-9px) rotate(1.2deg);
+  }
+}
+
+@keyframes ty-sway {
+  0%,
+  100% {
+    transform: rotate(-0.6deg);
+  }
+  50% {
+    transform: rotate(0.6deg);
   }
 }
 
@@ -132,6 +158,8 @@ body.theme-2026 {
 
 /* Themed section shell -------------------------------------------- */
 .ty-section {
+  position: relative;
+  z-index: 1; /* always paint above any hero art that drifts on scroll */
   max-width: var(--maxw);
   margin: 0 auto;
   padding: clamp(2rem, 6vw, 4rem) var(--pad);
@@ -189,6 +217,65 @@ body.theme-2026 {
   font-size: 0.96rem;
   color: var(--color-text-subtle);
   max-width: var(--maxw-prose);
+}
+
+/* Spirit: verbal inspiration + mission/vision + goal --------------- */
+.ty-verbal {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.3rem, 3.2vw, 2.1rem);
+  line-height: 1.25;
+  max-width: 36ch;
+  margin: 0 auto clamp(1.5rem, 4vw, 2.5rem);
+  text-align: center;
+  color: var(--theme-ink);
+}
+
+.ty-spirit {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+@media (min-width: 700px) {
+  .ty-spirit {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ty-lead {
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  line-height: 1.5;
+  margin-top: 0.4rem;
+  max-width: var(--maxw-prose);
+}
+
+.ty-goal {
+  font-family: var(--font-poster);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(1.3rem, 4vw, 2.1rem);
+  line-height: 1.1;
+  color: var(--color-accent-ink);
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+  text-align: center;
+}
+
+/* Instagram --------------------------------------------------------- */
+.ty-ig {
+  min-height: 80px;
+}
+
+.ty-ig-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background: var(--color-bg-sunken);
+  border: var(--line);
 }
 
 /* Lineup teaser ---------------------------------------------------- */
@@ -291,7 +378,7 @@ body.theme-2026 {
   text-align: center;
   padding: clamp(0.85rem, 2.6vw, 1.35rem) var(--pad);
   background-image: linear-gradient(rgba(19, 35, 56, 0.8), rgba(19, 35, 56, 0.8)),
-    url('../assets/2026/wash-blue.jpg');
+    url('../assets/2026/wash-blue-1280.jpg');
   background-size: cover;
   background-position: center;
   color: var(--paper-50);

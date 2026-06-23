@@ -37,6 +37,14 @@ export const THEME = {
   label: '2026',
   title: 'The Porch Ship',
   tagline: 'A free-sailing music festival washing over Portsmouth’s neighborhoods.',
+  // One-line "what this year feels like," from the brief's verbal inspiration.
+  verbal:
+    'A bright early-fall afternoon in the neighborhoods — gardens still green, neighbors and dogs out, music drifting from porch to porch.',
+  // The organizers' goal for the year (from the Linktree).
+  goal: 'Aiming for 40 porches and 80 performances.',
+  // Instagram feed widget id (Behold/LightWidget). Leave '' to show a Follow CTA
+  // instead. Paste the embed id once @portsmouthporchfest is connected.
+  instagramWidget: '',
   typekitId: 'tkh3pir', // Adobe Fonts kit → juniper-std
   artist: {
     name: 'Chad Turner',
