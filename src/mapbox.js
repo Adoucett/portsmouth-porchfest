@@ -10,8 +10,6 @@ import {
 const DESKTOP_BREAKPOINT = 768;
 const SRC_BANDS = 'bands';
 const LYR_BANDS = 'band-points';
-const SRC_BOOTHS = 'booths';
-const LYR_BOOTHS = 'booth-points';
 const SRC_ZONES = 'zone-fills';
 const LYR_ZONE_FILL = 'zone-fill';
 const LYR_ZONE_LINE = 'zone-line';
@@ -104,19 +102,9 @@ function setupLayers() {
     },
   });
 
-  // Info booths — visually distinct (paper fill, dark ring) and queryable.
-  map.addSource(SRC_BOOTHS, { type: 'geojson', data: boothsFC(), generateId: true });
-  map.addLayer({
-    id: LYR_BOOTHS,
-    type: 'circle',
-    source: SRC_BOOTHS,
-    paint: {
-      'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 8],
-      'circle-color': '#F5F1E8',
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#1a1a18',
-    },
-  });
+  // Info booths — the "i" badge markers (DOM). Bands that share a booth's
+  // address are fanned out (see spreadCoincident) so nothing overlaps.
+  addInfoBooths();
 
   wireInteractions();
   applyFilter();
@@ -127,44 +115,47 @@ function setupLayers() {
   map.resize();
 }
 
-function boothsFC() {
-  return {
-    type: 'FeatureCollection',
-    features: INFO_BOOTHS.map((b) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: b.coords },
-      properties: { kind: 'booth', name: b.name, note: b.note },
-    })),
-  };
+// Info booths as DOM "i" markers (their click opens the panel/sheet).
+function addInfoBooths() {
+  for (const booth of INFO_BOOTHS) {
+    const node = document.createElement('button');
+    node.type = 'button';
+    node.className = 'info-booth-marker';
+    node.title = `${booth.name} — ${booth.note}`;
+    node.setAttribute('aria-label', `${booth.name}. ${booth.note}`);
+    node.textContent = 'i';
+    node.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openDetails([
+        { kind: 'booth', props: { name: booth.name, note: booth.note }, coords: booth.coords },
+      ]);
+    });
+    new mapboxgl.Marker({ element: node, anchor: 'center' }).setLngLat(booth.coords).addTo(map);
+  }
 }
 
 // ------------------------------------------------------------- interactions
 
 function wireInteractions() {
-  for (const [layer, source] of [
-    [LYR_BANDS, SRC_BANDS],
-    [LYR_BOOTHS, SRC_BOOTHS],
-  ]) {
-    map.on('mousemove', layer, (e) => {
-      map.getCanvas().style.cursor = 'pointer';
-      const f = e.features && e.features[0];
-      if (!f) return;
-      if (!hover || hover.id !== f.id || hover.source !== source) {
-        clearHover();
-        hover = { source, id: f.id };
-        map.setFeatureState(hover, { hover: true });
-      }
-      showTooltip(f);
-    });
-    map.on('mouseleave', layer, () => {
-      map.getCanvas().style.cursor = '';
+  map.on('mousemove', LYR_BANDS, (e) => {
+    map.getCanvas().style.cursor = 'pointer';
+    const f = e.features && e.features[0];
+    if (!f) return;
+    if (!hover || hover.id !== f.id) {
       clearHover();
-      hideTooltip();
-    });
-  }
+      hover = { source: SRC_BANDS, id: f.id };
+      map.setFeatureState(hover, { hover: true });
+    }
+    showTooltip(f);
+  });
+  map.on('mouseleave', LYR_BANDS, () => {
+    map.getCanvas().style.cursor = '';
+    clearHover();
+    hideTooltip();
+  });
 
   map.on('click', (e) => {
-    const feats = map.queryRenderedFeatures(e.point, { layers: [LYR_BOOTHS, LYR_BANDS] });
+    const feats = map.queryRenderedFeatures(e.point, { layers: [LYR_BANDS] });
     if (!feats.length) {
       closePanel();
       return;
@@ -325,7 +316,7 @@ function detailHTML(item) {
       ${p.description ? `<p class="detail__desc">${esc(p.description)}</p>` : ''}
       <div class="detail__actions">
         ${directions ? `<a class="detail__btn" href="${directions}" target="_blank" rel="noopener">Walking directions</a>` : ''}
-        ${p.link ? `<a class="detail__btn detail__btn--ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Listen</a>` : ''}
+        ${p.link ? `<a class="detail__btn detail__btn--ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Band page ↗</a>` : ''}
       </div>
     </div>
   </div>`;
@@ -378,11 +369,53 @@ export function setBandData(geojson) {
   if (!map || !mapReady) return;
   const src = map.getSource(SRC_BANDS);
   if (src) {
-    src.setData(latestData);
+    src.setData(spreadCoincident(latestData));
     updateZoneFills();
     applyFilter();
     fitToData();
   }
+}
+
+const boothKeys = new Set(INFO_BOOTHS.map((b) => coordKey(b.coords)));
+
+function coordKey(c) {
+  return `${(+c[0]).toFixed(6)},${(+c[1]).toFixed(6)}`;
+}
+
+// Fan out markers that sit at the same coordinate (multiple bands on one porch,
+// or a band sharing an info booth's address) so every dot stays visible and
+// clickable. They shift only ~15m — still the same house. The booth marker keeps
+// the true center; bands ring around it.
+function spreadCoincident(fc) {
+  const groups = new Map();
+  for (const f of fc.features) {
+    const k = coordKey(f.geometry.coordinates);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(f);
+  }
+  const R = 0.00014; // ~15m
+  const out = [];
+  for (const [key, members] of groups) {
+    const boothHere = boothKeys.has(key);
+    if (members.length === 1 && !boothHere) {
+      out.push(members[0]);
+      continue;
+    }
+    const [lng, lat] = members[0].geometry.coordinates;
+    const kx = Math.cos((lat * Math.PI) / 180) || 1;
+    const n = members.length;
+    members.forEach((m, i) => {
+      const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
+      out.push({
+        ...m,
+        geometry: {
+          type: 'Point',
+          coordinates: [lng + ((R / kx) * Math.cos(angle)), lat + R * Math.sin(angle)],
+        },
+      });
+    });
+  }
+  return { type: 'FeatureCollection', features: out };
 }
 
 function fitToData() {
@@ -398,8 +431,12 @@ function fitToData() {
   });
 }
 
-// Build a light, padded convex-hull polygon per zone from the band dots. This
-// is a proof-of-concept overlay; swap for hand-drawn zone GeoJSON later.
+// Build a soft neighborhood blob per zone. We buffer each dot into an octagon
+// and hull the union, so even zones whose houses fall in a straight line get a
+// proper rounded area instead of a thin sliver. Proof-of-concept overlay — swap
+// for hand-drawn zone GeoJSON later.
+const ZONE_BUFFER = 0.0009; // ~100m of breathing room around the dots
+
 function updateZoneFills() {
   const src = map.getSource(SRC_ZONES);
   if (!src) return;
@@ -411,10 +448,10 @@ function updateZoneFills() {
   }
   const features = [];
   for (const [zone, pts] of Object.entries(byZone)) {
-    if (pts.length < 3) continue;
-    let hull = convexHull(pts);
+    if (!pts.length) continue;
+    const padded = pts.flatMap((p) => bufferRing(p, ZONE_BUFFER));
+    let hull = convexHull(padded);
     if (hull.length < 3) continue;
-    hull = padHull(hull, 1.5);
     hull.push(hull[0]);
     features.push({
       type: 'Feature',
@@ -423,6 +460,18 @@ function updateZoneFills() {
     });
   }
   src.setData({ type: 'FeatureCollection', features });
+}
+
+// 8 points around a coordinate (corrected for longitude shrink at this latitude).
+function bufferRing(pt, r) {
+  const [lng, lat] = pt;
+  const kx = Math.cos((lat * Math.PI) / 180) || 1;
+  const ring = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.PI / 4) * i;
+    ring.push([lng + (r / kx) * Math.cos(a), lat + r * Math.sin(a)]);
+  }
+  return ring;
 }
 
 // Andrew's monotone chain convex hull. Points are [lng, lat].
@@ -446,16 +495,6 @@ function convexHull(points) {
   upper.pop();
   lower.pop();
   return lower.concat(upper);
-}
-
-// Expand hull vertices outward from the centroid so the fill reads as a soft
-// neighborhood blob rather than hugging the outermost dots.
-function padHull(hull, factor) {
-  const n = hull.length;
-  if (!n) return hull;
-  const cx = hull.reduce((s, p) => s + p[0], 0) / n;
-  const cy = hull.reduce((s, p) => s + p[1], 0) / n;
-  return hull.map(([x, y]) => [cx + (x - cx) * factor, cy + (y - cy) * factor]);
 }
 
 // ----------------------------------------------------------------- filtering
