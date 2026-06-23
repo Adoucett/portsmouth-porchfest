@@ -24,19 +24,22 @@
     <header id="site-nav"></header>
 
     <main>
-      <!-- HERO + COUNTDOWN -->
-      <section class="hero container">
-        <p class="eyebrow" data-festival="dateLabel"></p>
-        <h1 class="hero__title">Portsmouth<br />Porchfest</h1>
-        <div class="hero__meta">
-          <span data-festival="location"></span>
-          <span><strong data-festival="timeLabel"></strong></span>
+      <!-- HERO + COUNTDOWN (Portsmouth map backdrop) -->
+      <section class="hero hero--map">
+        <div class="hero__inner container">
+          <p class="eyebrow" data-festival="dateLabel"></p>
+          <h1 class="hero__title">Portsmouth<br />Porchfest</h1>
+          <div class="hero__meta">
+            <span data-festival="location"></span>
+            <span><strong data-festival="timeLabel"></strong></span>
+          </div>
+          <div id="countdown" class="countdown" aria-label="Countdown to the festival"></div>
+          <div class="cta__buttons">
+            <a href="/map" class="btn">View the map</a>
+            <a href="/get-involved" class="btn btn--ghost">Get involved</a>
+          </div>
         </div>
-        <div id="countdown" class="countdown" aria-label="Countdown to the festival"></div>
-        <div class="cta__buttons">
-          <a href="/map" class="btn">View the map</a>
-          <a href="/get-involved" class="btn btn--ghost">Get involved</a>
-        </div>
+        <p class="hero__attribution">Map © Mapbox © OpenStreetMap</p>
       </section>
 
       <!-- WHAT WE ARE -->

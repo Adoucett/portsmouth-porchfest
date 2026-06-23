@@ -92,13 +92,62 @@
 
 /* ---- Hero ---- */
 .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: calc(100svh - 56px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1.5rem;
   padding-block: clamp(2rem, 6vw, 4rem);
   border-bottom: var(--line);
+}
+
+.hero__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Portsmouth map backdrop: warmed into the paper tone with a multiply blend,
+   then a paper gradient scrim so the title + countdown stay legible. The image
+   is a committed static asset — the live site makes zero Mapbox requests. */
+.hero--map {
+  background-color: var(--color-bg);
+}
+
+.hero--map::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('../assets/images/portsmouth-map.jpg') center 42% / cover no-repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.62;
+}
+
+.hero--map::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgba(245, 241, 232, 0.5) 0%,
+    rgba(245, 241, 232, 0.22) 40%,
+    rgba(245, 241, 232, 0.72) 100%
+  );
+}
+
+.hero__attribution {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.4rem;
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+  opacity: 0.8;
 }
 
 .hero__title {
