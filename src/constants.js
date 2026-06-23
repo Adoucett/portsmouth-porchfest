@@ -96,6 +96,13 @@ export const ABOUT = {
     'To create a community that is connected, inspired, and transformed by the music shared and the fellowship enjoyed by every one of us.',
 };
 
+// Mapbox access token, injected at build time from VITE_MAPBOX_TOKEN (Vercel
+// env var for deploys, local .env for dev). NOTE: GitHub push-protection blocks
+// committing the literal token, so it must stay in env vars — keep it set for
+// Production + Preview in Vercel. `pk.*` tokens are publishable; secure with URL
+// restrictions in the Mapbox dashboard rather than secrecy.
+export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
 // Public Google Sheet — published CSV export of the "live" tab (gid=0).
 // Julia updates the sheet; the map auto-refreshes on next page load. No deploys
 // needed. NOTE: must target the LIVE tab specifically (single=true&gid=0), not

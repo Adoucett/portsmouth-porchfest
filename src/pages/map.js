@@ -6,7 +6,7 @@ import {
   setSearchFilter,
 } from '../mapbox.js';
 import { initSite } from '../site.js';
-import { ZONES } from '../constants.js';
+import { ZONES, MAPBOX_TOKEN } from '../constants.js';
 import { fetchBands, rowsToGeoJSON } from '../data.js';
 import { SAMPLE_BANDS } from '../sample-data.js';
 
@@ -83,7 +83,7 @@ async function boot() {
   wireSearch();
   setLoading(true);
 
-  const token = import.meta.env.VITE_MAPBOX_TOKEN;
+  const token = MAPBOX_TOKEN;
 
   try {
     const map = await initMap({ container: '#map-canvas', token });
