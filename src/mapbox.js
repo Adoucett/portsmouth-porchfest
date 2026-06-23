@@ -5,6 +5,7 @@ import {
   ZONES,
   DEFAULT_MARKER_COLOR,
   INFO_BOOTHS,
+  THEME,
 } from './constants.js';
 
 const DESKTOP_BREAKPOINT = 768;
@@ -106,6 +107,7 @@ function setupLayers() {
   // address are fanned out (see spreadCoincident) so nothing overlaps.
   addInfoBooths();
 
+  applyMaritimeTint();
   wireInteractions();
   applyFilter();
   if (latestData.features.length) {
@@ -113,6 +115,23 @@ function setupLayers() {
     fitToData();
   }
   map.resize();
+}
+
+// Light maritime nudge: tint the base style's water layers toward harbor blue.
+// Proof-of-concept for the 2026 nautical direction — guarded so it no-ops if the
+// active style has no matching water layers. Swap for a real Studio style later.
+function applyMaritimeTint() {
+  const tint = THEME.mapWaterTint;
+  if (!tint || !map) return;
+  try {
+    for (const layer of map.getStyle().layers || []) {
+      if (layer.type === 'fill' && /water/i.test(layer.id) && !/label/i.test(layer.id)) {
+        map.setPaintProperty(layer.id, 'fill-color', tint);
+      }
+    }
+  } catch {
+    /* style has no tintable water layers — leave it as-is */
+  }
 }
 
 // Info booths as DOM "i" markers (their click opens the panel/sheet).

@@ -1,0 +1,267 @@
+/* =====================================================================
+   YEARLY THEMES — additive, scoped to body.theme-YYYY.
+
+   The evergreen base lives in tokens.css and the rest of the stylesheets.
+   A theme only (a) overrides a few semantic tokens and (b) styles the
+   "This Year" page components. Roll to next year by adding a new block +
+   a new asset folder; the base is never touched.
+   ===================================================================== */
+
+/* ---- 2026: "Porch Ship" — maritime harbor blue, woodtype, gig-poster ---- */
+body.theme-2026 {
+  --color-accent: var(--blue-500);
+  --color-accent-ink: var(--blue-700);
+  --color-on-accent: var(--paper-50);
+  --theme-wash: url('../assets/2026/wash-blue.jpg');
+  --theme-ink: var(--ink-900);
+}
+
+/* ===================== This Year page (themed) ===================== */
+.ty {
+  /* full-bleed textured wash behind the whole themed page */
+  background: var(--theme-wash) center top / cover no-repeat fixed,
+    var(--color-bg);
+}
+
+@media (max-width: 767px) {
+  .ty {
+    background-attachment: scroll;
+  }
+}
+
+/* Hero ------------------------------------------------------------- */
+.ty-hero {
+  position: relative;
+  text-align: center;
+  padding: clamp(1.5rem, 4vw, 3rem) var(--pad) clamp(2rem, 6vw, 4rem);
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.ty-hero__banner {
+  display: block;
+  width: min(680px, 100%);
+  margin: 0 auto clamp(0.5rem, 2vw, 1rem);
+  filter: drop-shadow(0 2px 6px rgba(26, 26, 24, 0.18));
+}
+
+.ty-hero__ship {
+  display: block;
+  width: min(440px, 82%);
+  margin: 0 auto clamp(1rem, 3vw, 1.75rem);
+  filter: drop-shadow(0 6px 18px rgba(26, 26, 24, 0.22));
+}
+
+.ty-deets {
+  font-family: var(--font-poster);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  font-size: clamp(1.8rem, 7vw, 3.4rem);
+  color: var(--theme-ink);
+  text-transform: uppercase;
+  margin: 0 auto 0.4rem;
+}
+
+.ty-deets span {
+  display: block;
+}
+
+.ty-hero__sub {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  color: var(--color-text);
+  margin-bottom: 1.5rem;
+}
+
+.ty-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* Themed section shell -------------------------------------------- */
+.ty-section {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4rem) var(--pad);
+}
+
+.ty-section__head {
+  font-family: var(--font-poster);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  line-height: 1;
+  color: var(--theme-ink);
+  margin-bottom: 1.5rem;
+}
+
+/* Paper card so themed content stays legible over the wash */
+.ty-card {
+  background: color-mix(in srgb, var(--paper-50) 92%, transparent);
+  border: var(--line);
+  backdrop-filter: blur(2px);
+}
+
+/* Latest updates --------------------------------------------------- */
+.ty-updates {
+  display: grid;
+  gap: 1px;
+  background: var(--color-line);
+  border: var(--line);
+}
+
+.ty-update {
+  background: var(--color-bg-raised);
+  padding: 1.1rem 1.25rem;
+}
+
+.ty-update__date {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent-ink);
+  margin-bottom: 0.3rem;
+}
+
+.ty-update__text {
+  font-size: 0.98rem;
+  max-width: var(--maxw-prose);
+}
+
+/* Lineup teaser ---------------------------------------------------- */
+.ty-lineup {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--color-line);
+  border: var(--line);
+}
+
+@media (min-width: 640px) {
+  .ty-lineup {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .ty-lineup {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ty-band {
+  background: var(--color-bg-raised);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ty-band__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-bottom: 0.35rem;
+}
+
+.ty-band__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.ty-band__meta {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* Poster + credit -------------------------------------------------- */
+.ty-poster {
+  display: grid;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  align-items: center;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 760px) {
+  .ty-poster {
+    grid-template-columns: minmax(0, 320px) 1fr;
+  }
+}
+
+.ty-poster__img {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  border: var(--line);
+  box-shadow: 0 8px 28px rgba(26, 26, 24, 0.18);
+}
+
+.ty-credit {
+  font-family: var(--font-display);
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+  color: var(--color-text-subtle);
+  margin-top: 1rem;
+}
+
+.ty-credit a {
+  color: var(--color-accent-ink);
+  font-weight: 600;
+}
+
+/* QR + social ------------------------------------------------------ */
+.ty-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: center;
+}
+
+/* ---- Home "This Year" teaser ribbon (light touch on the evergreen home) ---- */
+.year-teaser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(0.85rem, 2.6vw, 1.35rem) var(--pad);
+  background-image: linear-gradient(rgba(19, 35, 56, 0.8), rgba(19, 35, 56, 0.8)),
+    url('../assets/2026/wash-blue.jpg');
+  background-size: cover;
+  background-position: center;
+  color: var(--paper-50);
+  text-decoration: none;
+  border-bottom: var(--line);
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.year-teaser:hover {
+  filter: brightness(1.08);
+  color: var(--paper-50);
+}
+
+.year-teaser__kicker {
+  font-family: var(--font-poster);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: clamp(1.05rem, 3.5vw, 1.6rem);
+  line-height: 1;
+}
+
+.year-teaser__text {
+  font-weight: 600;
+}
+
+.year-teaser__go {
+  font-weight: 700;
+  white-space: nowrap;
+}

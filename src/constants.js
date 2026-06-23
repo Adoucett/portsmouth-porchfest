@@ -29,6 +29,48 @@ export const FESTIVAL = {
   nextYearLabel: 'See you next year — September 18, 2027',
 };
 
+// Current-year theme metadata. Drives the "This Year" page and makes the yearly
+// rollover a one-stop edit: bump the year, swap the asset folder + Adobe kit,
+// relabel the nav item. The evergreen base never changes.
+export const THEME = {
+  year: 2026,
+  label: '2026',
+  title: 'The Porch Ship',
+  tagline: 'A free-sailing music festival washing over Portsmouth’s neighborhoods.',
+  typekitId: 'tkh3pir', // Adobe Fonts kit → juniper-std
+  artist: {
+    name: 'Chad Turner',
+    handle: '@muzzythewop',
+    instagram: 'https://www.instagram.com/muzzythewop/',
+  },
+  // Map theming for the year. `mapStyle` is the Mapbox Studio style; swap it for
+  // a fully maritime/nautical-chart style here next time. `mapWaterTint` is a
+  // light, runtime harbor-blue nudge applied to the style's water layers as a
+  // proof-of-concept (set to null to disable).
+  mapStyle: 'mapbox://styles/adoucett/cm6fvb62v005s01s50vq64sb6',
+  mapWaterTint: '#a7c6d6',
+};
+
+// "Latest updates" shown on the This Year page (newest first). Plain, editable.
+export const ANNOUNCEMENTS = [
+  {
+    date: 'This year',
+    text: 'Save the date — Saturday, September 19, 2026, 12–6 PM across three Portsmouth neighborhoods (Richards Ave, Wibird St, Goodwin Park).',
+  },
+  {
+    date: 'Artwork',
+    text: 'The 2026 poster has landed — original art by Chad Turner (@muzzythewop).',
+  },
+  {
+    date: 'Signups open',
+    text: 'Musician, porch-host, and volunteer signups are open — one form covers all three.',
+  },
+  {
+    date: 'Lineup',
+    text: 'Performers are being confirmed and added to the live map as they come in. Check back often.',
+  },
+];
+
 // Zone definitions drive the schedule, the filter pills, and marker colors.
 // `color` should match the Mapbox style if you build a custom one in Studio.
 export const ZONES = [
@@ -83,7 +125,7 @@ export const MAP_DEFAULTS = {
     [-70.82, 43.03],
     [-70.69, 43.11],
   ],
-  style: 'mapbox://styles/adoucett/cm6fvb62v005s01s50vq64sb6',
+  style: THEME.mapStyle,
 };
 
 // Homepage copy (from the organizers). Edit freely.

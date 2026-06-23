@@ -1,3 +1,8 @@
+/* Adobe Fonts (Typekit) — kit tkh3pir provides "juniper-std" (the 2026 woodtype
+   display face). Loaded here so it's available wherever --font-poster is used.
+   @import must stay at the very top of the stylesheet. */
+@import url('https://use.typekit.net/tkh3pir.css');
+
 /* =====================================================================
    FONTS
 

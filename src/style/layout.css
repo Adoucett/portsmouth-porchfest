@@ -47,6 +47,14 @@
 
 .site-nav__brand {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-nav__logo {
+  display: block;
+  height: clamp(30px, 4.5vw, 40px);
+  width: auto;
 }
 
 .site-nav__links {

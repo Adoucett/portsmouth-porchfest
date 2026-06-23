@@ -8,12 +8,15 @@ import './style/base.css';
 import './style/layout.css';
 import './style/map.css';
 import './style/components.css';
+import './style/themes.css';
 
 import { FESTIVAL } from './constants.js';
 import { mountIcons } from './icons.js';
+import wordmarkUrl from './assets/2026/wordmark.png';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
+  { href: '/this-year', label: '2026' },
   { href: '/map', label: 'Map' },
   { href: '/get-involved', label: 'Get Involved' },
   { href: '/faq', label: 'FAQ' },
@@ -33,9 +36,8 @@ function renderNav() {
   const here = currentPath();
   host.className = 'site-nav';
   host.innerHTML = `
-    <a href="/" class="site-nav__brand">
-      <span class="site-nav__mark" data-icon="mark" aria-hidden="true"></span>
-      <span>Portsmouth Porchfest</span>
+    <a href="/" class="site-nav__brand" aria-label="Portsmouth Porchfest — home">
+      <img class="site-nav__logo" src="${wordmarkUrl}" alt="Portsmouth Porchfest" width="120" height="39" />
     </a>
     <nav>
       <ul class="site-nav__links">

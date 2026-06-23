@@ -80,6 +80,9 @@
   --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  /* Poster/woodtype display face for the current year's theme (Adobe juniper-std,
+     weight 400 only — use at large display sizes, never for body). */
+  --font-poster: 'juniper-std', 'Rye', 'Fraunces', Georgia, serif;
 
   /* Optical/character settings for the display face (Fraunces) */
   --display-soft: 0; /* 0–100 softness */

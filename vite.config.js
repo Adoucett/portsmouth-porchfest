@@ -34,6 +34,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
+        thisYear: resolve(root, 'this-year.html'),
         map: resolve(root, 'map.html'),
         getInvolved: resolve(root, 'get-involved.html'),
         faq: resolve(root, 'faq.html'),
