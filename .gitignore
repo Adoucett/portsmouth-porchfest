@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Cursor local hook state
 .cursor/hooks/state/
+
+# Private organizer files — never commit
+no_commit/

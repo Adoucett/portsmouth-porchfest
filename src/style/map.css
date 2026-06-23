@@ -137,6 +137,16 @@
   font-family: var(--font-body);
 }
 
+/* Band popup: photo bleeds edge-to-edge at top */
+.mapboxgl-popup.band-popup .mapboxgl-popup-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+.mapboxgl-popup.band-popup .detail__body {
+  padding: 1rem 1.1rem 1.1rem;
+}
+
 .mapboxgl-popup-close-button {
   font-size: 1.2rem;
   padding: 0 0.4rem;
@@ -185,21 +195,28 @@
   color: var(--accent);
 }
 
-/* Popup/sheet photo + action buttons */
-.detail {
-  width: 100%;
+/* Popup/sheet photo — scales any reasonable aspect ratio without breaking layout */
+.detail__media {
+  background: var(--color-bg-sunken);
+  line-height: 0;
+  overflow: hidden;
 }
 
 .detail__img {
   display: block;
   width: 100%;
-  height: 150px;
-  object-fit: cover;
-  margin-bottom: 0.85rem;
+  height: auto;
+  max-height: clamp(120px, 32vw, 220px);
+  object-fit: contain;
+  object-position: center;
 }
 
 .bottom-sheet .detail__img {
-  height: 180px;
+  max-height: clamp(140px, 38vw, 280px);
+}
+
+.detail__body {
+  min-width: 0;
 }
 
 .detail__actions {

@@ -242,7 +242,7 @@ function applyFilter() {
 function openDetails(feature) {
   const html = detailHTML(feature.properties || {}, feature.geometry.coordinates);
   if (window.innerWidth >= DESKTOP_BREAKPOINT) {
-    new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '320px' })
+    new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '340px', className: 'band-popup' })
       .setLngLat(feature.geometry.coordinates)
       .setHTML(html)
       .addTo(map);
@@ -260,7 +260,7 @@ function detailHTML(p, coords) {
   const img = p.image || p.photo;
 
   return `<div class="detail">
-    ${img ? `<img class="detail__img" src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()" />` : ''}
+    ${img ? `<div class="detail__media"><img class="detail__img" src="${esc(img)}" alt="" loading="lazy" onerror="this.closest('.detail__media')?.remove()" /></div>` : ''}
     <div class="detail__body">
       ${p.genre ? `<span class="detail__genre">${esc(p.genre)}</span>` : ''}
       <h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>
