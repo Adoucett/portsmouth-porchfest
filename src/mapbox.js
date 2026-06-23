@@ -138,8 +138,19 @@ export function initMap({ container, token }) {
 
     map.on('load', () => {
       setupLayers();
+      // Belt-and-suspenders: the flex layout can settle (fonts, controls) just
+      // after init, leaving Mapbox's canvas sized to a stale/zero box and
+      // rendering blank. Resize once now and again on the next frame.
+      map.resize();
+      requestAnimationFrame(() => map?.resize());
       finish(map);
     });
+
+    // Keep the GL canvas locked to its container size for the life of the map.
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(() => map?.resize());
+      ro.observe(el);
+    }
 
     map.on('error', (e) => {
       console.error('[map] error:', e.error);

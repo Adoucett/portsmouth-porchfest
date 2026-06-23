@@ -4,34 +4,59 @@
   padding: 0;
 }
 
-/* ---- Map page: mobile-first full-viewport layout ---- */
-.map-page {
+/* ---- Map route: lock the whole page to the viewport, no vertical scroll ----
+   `map-route` is added to <body> only on the map page (see pages/map.js), so the
+   nav + map fill exactly one screen and visitors land directly on the map. */
+body.map-route {
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: calc(100svh - 52px);
+}
+
+body.map-route .site-nav {
+  position: static; /* no need for sticky in a fixed-height shell */
+  flex: 0 0 auto;
+}
+
+body.map-route .site-footer {
+  display: none; /* footer would force scroll; map page is self-contained */
+}
+
+.map-page {
+  flex: 1 1 auto;
+  min-height: 0; /* critical: lets the flex child shrink so the map gets real height */
+  display: flex;
+  flex-direction: column;
 }
 
 .map-page__intro {
-  padding-top: clamp(1rem, 3vw, 1.75rem);
-  padding-bottom: 0.75rem;
-  flex-shrink: 0;
+  padding-top: clamp(0.6rem, 2.4vw, 1.4rem);
+  padding-bottom: 0.6rem;
+  flex: 0 0 auto;
+}
+
+.map-page__title {
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  margin-top: 0.15rem;
 }
 
 @media (max-width: 767px) {
   .map-page__title {
-    font-size: clamp(1.6rem, 7vw, 2.2rem);
+    font-size: clamp(1.35rem, 6.5vw, 1.9rem);
   }
   .map-page__intro {
-    padding-bottom: 0.5rem;
+    padding-top: 0.55rem;
+    padding-bottom: 0.45rem;
   }
 }
 
 .map-shell {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0; /* allow the map to fill remaining space instead of overflowing */
   display: flex;
   flex-direction: column;
-  min-height: 420px;
 }
 
 .map-loading {
@@ -55,21 +80,10 @@
 
 .map-wrap {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
   width: 100%;
-  min-height: 420px;
-  height: 100%;
+  min-height: 0;
   background: var(--paper-2);
-}
-
-@media (max-width: 767px) {
-  .map-page {
-    min-height: calc(100dvh - 48px);
-  }
-  .map-shell,
-  .map-wrap {
-    min-height: 55dvh;
-  }
 }
 
 .map-canvas {
@@ -137,14 +151,32 @@
   font-family: var(--font-body);
 }
 
-/* Band popup: photo bleeds edge-to-edge at top */
+/* Band popup: photo bleeds edge-to-edge at top, text scrolls if the bio is long.
+   The page itself can't scroll on the map route, so the popup must scroll
+   internally — cap its height and keep the photo pinned while the body scrolls. */
 .mapboxgl-popup.band-popup .mapboxgl-popup-content {
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: min(70vh, 460px);
+}
+
+.mapboxgl-popup.band-popup .detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mapboxgl-popup.band-popup .detail__media {
+  flex: 0 0 auto;
 }
 
 .mapboxgl-popup.band-popup .detail__body {
   padding: 1rem 1.1rem 1.1rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .mapboxgl-popup-close-button {
@@ -283,23 +315,37 @@
   border-top: var(--line);
   border-bottom: var(--line);
   background: var(--color-bg);
-  flex-shrink: 0;
-  position: sticky;
-  top: 52px;
+  flex: 0 0 auto;
   z-index: 10;
 }
 
 @media (max-width: 767px) {
   .map-controls {
-    top: 48px;
     padding: 0.6rem var(--pad);
+    gap: 0.5rem;
   }
   .map-search {
     width: 100%;
+    order: 2;
   }
   .map-search input {
     width: 100%;
     min-width: 0;
+  }
+  .schedule-strip {
+    flex-wrap: nowrap;
+    gap: 1rem;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .schedule-strip::-webkit-scrollbar {
+    display: none;
+  }
+  .sched-chip {
+    flex: 0 0 auto;
   }
 }
 

@@ -12,6 +12,10 @@ import { SAMPLE_BANDS } from '../sample-data.js';
 
 initSite();
 
+// Lock this page to the viewport (no vertical scroll) so visitors land directly
+// on the map. Scoped to the map route only via this body class.
+document.body.classList.add('map-route');
+
 function renderScheduleStrip() {
   const strip = document.getElementById('schedule-strip');
   if (!strip) return;
@@ -93,6 +97,8 @@ async function boot() {
       geojson = rowsToGeoJSON(SAMPLE_BANDS);
     }
     setBandData(geojson);
+    // Final resize after layout has fully settled with data/controls in place.
+    requestAnimationFrame(() => map.resize());
   } catch (err) {
     console.error('[map page]', err);
     showFatalError(err.message || 'Unknown error — check browser console.');

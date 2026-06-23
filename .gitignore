@@ -147,3 +147,4 @@ vite.config.ts.timestamp-*
 
 # Private organizer files — never commit
 no_commit/
+.vercel

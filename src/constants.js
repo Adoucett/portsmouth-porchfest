@@ -96,9 +96,11 @@ export const ABOUT = {
     'To create a community that is connected, inspired, and transformed by the music shared and the fellowship enjoyed by every one of us.',
 };
 
-// Public Google Sheet — published CSV export URL.
-// Julia updates the sheet; the map auto-refreshes on next page load. No deploys needed.
-export const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8iEZ_CcqThjS2ty2-BQMIjpSpMmFTF31A71dKzlIj6C2h85cPHWsQcZtWP1bEZ5ansx889225qXxi/pub?output=csv';
+// Public Google Sheet — published CSV export of the "live" tab (gid=0).
+// Julia updates the sheet; the map auto-refreshes on next page load. No deploys
+// needed. NOTE: must target the LIVE tab specifically (single=true&gid=0), not
+// the whole document, so the draft tab is never pulled.
+export const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8iEZ_CcqThjS2ty2-BQMIjpSpMmFTF31A71dKzlIj6C2h85cPHWsQcZtWP1bEZ5ansx889225qXxi/pub?gid=0&single=true&output=csv';
 
 // FAQ content drawn from the organizers' 2026 FAQ. Keep answers in sync with the
 // committee's master doc.
