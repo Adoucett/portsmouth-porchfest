@@ -9,6 +9,7 @@
       content="A free, grassroots neighborhood music festival in Portsmouth, NH. Saturday, September 19, 2026. Find performers on the live map."
     />
     <meta name="theme-color" content="#F5F1E8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="Portsmouth Porchfest 2026" />
@@ -18,18 +19,23 @@
     />
     <meta property="og:type" content="website" />
 
-    <!-- Fonts: display serif + body sans, swap to avoid blocking render -->
+    <!-- Fonts: Fraunces (display, w/ optical + soft/wonk axes) + Inter (body).
+         font-display: swap avoids blocking render. See src/style/fonts.css to
+         switch to self-hosted woff2 before launch. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..900,0..100,0..1;1,9..144,400..900,0..100,0..1&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <!-- NAV -->
     <header class="site-nav">
-      <a href="#top" class="site-nav__brand">Portsmouth Porchfest</a>
+      <a href="#top" class="site-nav__brand">
+        <span class="site-nav__mark" data-icon="mark" aria-hidden="true"></span>
+        <span>Portsmouth Porchfest</span>
+      </a>
       <nav>
         <ul class="site-nav__links">
           <li><a href="#map">Map</a></li>
@@ -120,9 +126,9 @@
     <!-- FOOTER -->
     <footer class="site-footer">
       <nav class="site-footer__links">
-        <a id="footer-email" href="#">Email</a>
-        <a id="footer-ig" href="#" target="_blank" rel="noopener">Instagram</a>
-        <a id="footer-fb" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a id="footer-email" href="#"><span data-icon="email" aria-hidden="true"></span>Email</a>
+        <a id="footer-ig" href="#" target="_blank" rel="noopener"><span data-icon="instagram" aria-hidden="true"></span>Instagram</a>
+        <a id="footer-fb" href="#" target="_blank" rel="noopener"><span data-icon="facebook" aria-hidden="true"></span>Facebook</a>
       </nav>
       <p class="site-footer__fine">
         Portsmouth Porchfest · Portsmouth, NH · A free community event.

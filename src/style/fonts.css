@@ -1,0 +1,41 @@
+/* =====================================================================
+   FONTS
+
+   DEFAULT (active now): fonts load from Google Fonts via the <link> in
+   index.html — Fraunces (display) + Inter (body). Zero setup, looks great.
+
+   SELF-HOSTING (recommended before launch for speed + offline + no FOUT):
+   1. Download the woff2 files (e.g. from https://gwfh.mranftl.com/fonts or
+      the official repos) into src/assets/fonts/.
+   2. Remove the Google Fonts <link> from index.html.
+   3. Uncomment the @font-face blocks below and fix the filenames.
+   Vite will fingerprint and bundle the files automatically.
+
+   We use the VARIABLE fonts so a single file covers all weights/axes.
+   ===================================================================== */
+
+/*
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Fraunces-VariableFont.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Fraunces-Italic-VariableFont.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Inter-VariableFont.woff2') format('woff2-variations');
+}
+*/

@@ -23,11 +23,26 @@
 }
 
 .site-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.1rem;
   letter-spacing: -0.01em;
   text-decoration: none;
+}
+
+.site-nav__mark {
+  font-size: 1.5rem;
+  color: var(--color-accent);
+}
+
+@media (max-width: 600px) {
+  /* On small screens, keep just the mark + a tighter wordmark */
+  .site-nav__brand span:last-child {
+    font-size: 0.95rem;
+  }
 }
 
 .site-nav__links {
@@ -158,6 +173,16 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.site-footer__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-footer__links a [data-icon] {
+  font-size: 1.15rem;
 }
 
 .site-footer__fine {

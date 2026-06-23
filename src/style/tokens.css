@@ -1,0 +1,148 @@
+/* =====================================================================
+   DESIGN TOKENS — the single source of truth for the visual system.
+   Everything else (base/layout/map/components) should consume these vars
+   and never hardcode a raw color, size, or timing value.
+   ===================================================================== */
+
+:root {
+  /* -----------------------------------------------------------------
+     1. RAW PALETTE — hue ramps. Pick from these to build semantics.
+     Each hue has a 50→900 ramp so we can tint/shade consistently.
+     ----------------------------------------------------------------- */
+
+  /* Paper — warm off-whites and parchment neutrals (never pure white) */
+  --paper-50: #fbf9f3;
+  --paper-100: #f5f1e8; /* primary background */
+  --paper-200: #efe9db;
+  --paper-300: #e6dcc8;
+  --paper-400: #d8cbb0;
+
+  /* Ink — warm near-blacks and greiges */
+  --ink-900: #14140f;
+  --ink-800: #1a1a18; /* primary text */
+  --ink-700: #2b2a25;
+  --ink-500: #5a564c;
+  --ink-400: #8c8577; /* muted */
+  --ink-300: #b3ab9b;
+
+  /* Terracotta — Zone 1 / primary accent */
+  --terracotta-100: #f4ddce;
+  --terracotta-300: #e0a37e;
+  --terracotta-500: #c4622d; /* accent */
+  --terracotta-700: #9a4a1f;
+  --terracotta-900: #5f2d12;
+
+  /* Sage — Zone 2 */
+  --sage-100: #d9e3da;
+  --sage-300: #8db09a;
+  --sage-500: #3d6b4f;
+  --sage-700: #2c4f3a;
+  --sage-900: #1b3123;
+
+  /* Harbor blue — Zone 3 */
+  --blue-100: #cdd8e6;
+  --blue-300: #6f8cb3;
+  --blue-500: #2b4a7a;
+  --blue-700: #1f375b;
+  --blue-900: #132338;
+
+  /* -----------------------------------------------------------------
+     2. SEMANTIC TOKENS — what the UI actually references.
+     Swap these to retheme without touching components.
+     ----------------------------------------------------------------- */
+  --color-bg: var(--paper-100);
+  --color-bg-raised: var(--paper-50);
+  --color-bg-sunken: var(--paper-200);
+  --color-text: var(--ink-800);
+  --color-text-muted: var(--ink-400);
+  --color-text-subtle: var(--ink-500);
+  --color-line: var(--ink-800);
+  --color-line-soft: var(--paper-400);
+  --color-accent: var(--terracotta-500);
+  --color-accent-ink: var(--terracotta-700);
+  --color-on-accent: var(--paper-50);
+  --color-on-ink: var(--paper-100);
+
+  --zone-1: var(--terracotta-500);
+  --zone-2: var(--sage-500);
+  --zone-3: var(--blue-500);
+
+  /* Legacy aliases kept so existing CSS keeps working */
+  --ink: var(--color-text);
+  --paper: var(--color-bg);
+  --paper-2: var(--color-bg-sunken);
+  --accent: var(--color-accent);
+  --muted: var(--color-text-muted);
+
+  /* -----------------------------------------------------------------
+     3. TYPOGRAPHY — fonts + a modular type scale (1.25 / major third).
+     ----------------------------------------------------------------- */
+  --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Optical/character settings for the display face (Fraunces) */
+  --display-soft: 0; /* 0–100 softness */
+  --display-wonk: 1; /* 0/1 quirky terminals */
+
+  --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.9rem);
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1.2vw, 2.25rem);
+  --step-3: clamp(1.9rem, 1.5rem + 2.4vw, 3.5rem);
+  --step-4: clamp(2.4rem, 1.6rem + 4.5vw, 5.5rem);
+  --step-5: clamp(3rem, 1.5rem + 9vw, 9rem); /* hero / countdown */
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-normal: 1.55;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.18em;
+
+  /* -----------------------------------------------------------------
+     4. SPACING — 4px base rhythm.
+     ----------------------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  --maxw: 1100px;
+  --maxw-prose: 62ch;
+  --pad: clamp(1.5rem, 5vw, 3rem);
+
+  /* -----------------------------------------------------------------
+     5. BORDERS / RADII / ELEVATION — restrained, poster-flat.
+     ----------------------------------------------------------------- */
+  --border-w: 1px;
+  --line: var(--border-w) solid var(--color-line);
+  --line-soft: var(--border-w) solid var(--color-line-soft);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-sheet: 16px;
+  --radius-full: 999px;
+  /* Used very sparingly — poster aesthetic avoids shadows. */
+  --shadow-pop: 0 1px 0 var(--color-line);
+
+  /* -----------------------------------------------------------------
+     6. MOTION — shared easing + durations.
+     ----------------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur-mid: 280ms;
+  --dur-slow: 600ms;
+
+  /* -----------------------------------------------------------------
+     7. LAYERING.
+     ----------------------------------------------------------------- */
+  --z-grain: 1;
+  --z-nav: 20;
+  --z-map-ui: 30;
+  --z-sheet: 60;
+}

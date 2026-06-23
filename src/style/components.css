@@ -1,5 +1,20 @@
 /* Countdown, filter pills, buttons, FAQ accordion. */
 
+/* ---- Inline SVG icons (injected by icons.js) ---- */
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  color: inherit;
+}
+
+[data-icon] svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
 /* ---- Countdown ---- */
 .countdown {
   display: flex;

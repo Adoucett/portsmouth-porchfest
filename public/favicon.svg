@@ -1,0 +1,7 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Porchfest">
+  <rect width="48" height="48" rx="10" fill="#1a1a18"/>
+  <!-- house silhouette in terracotta, readable at favicon sizes -->
+  <path d="M10 23 L24 11 L38 23 V38 H10 Z" fill="#c4622d"/>
+  <rect x="20" y="29" width="8" height="9" fill="#f5f1e8"/>
+  <circle cx="24" cy="11.5" r="2" fill="#f5f1e8"/>
+</svg>

@@ -1,3 +1,5 @@
+import './style/tokens.css';
+import './style/fonts.css';
 import './style/base.css';
 import './style/layout.css';
 import './style/map.css';
@@ -7,6 +9,7 @@ import { FESTIVAL, ZONES, FAQ } from './constants.js';
 import { initCountdown } from './countdown.js';
 import { initMap, setBandData, setZoneFilter } from './map.js';
 import { fetchBands } from './data.js';
+import { mountIcons } from './icons.js';
 
 // Fill any [data-festival="key"] element with FESTIVAL[key].
 function hydrateFestivalText() {
@@ -88,6 +91,7 @@ async function boot() {
   renderSchedule();
   renderFaq();
   renderFilterBar();
+  mountIcons();
 
   const countdownEl = document.getElementById('countdown');
   initCountdown(countdownEl);

@@ -1,0 +1,16 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Porchfest mark">
+  <g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- gable roof -->
+    <path d="M9 22 L24 9 L39 22" />
+    <!-- house body -->
+    <path d="M13 22 V39 H35 V22" />
+    <!-- porch posts + railing -->
+    <path d="M17 39 V27 M31 39 V27 M17 31 H31" />
+    <!-- door -->
+    <path d="M22 39 V33 H26 V39" />
+    <!-- music notes drifting off the porch -->
+    <path d="M40 14 V8 L44 7 V13" />
+    <circle cx="38.5" cy="14" r="1.6" fill="currentColor" stroke="none" />
+    <circle cx="42.5" cy="13" r="1.6" fill="currentColor" stroke="none" />
+  </g>
+</svg>
