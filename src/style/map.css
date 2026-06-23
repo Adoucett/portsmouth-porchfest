@@ -447,3 +447,164 @@ body.map-route .site-footer {
   max-height: 70svh;
   overflow-y: auto;
 }
+
+/* ---- Desktop side panel (replaces popups) ---- */
+.map-panel {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(380px, 33%);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-right: var(--line);
+  box-shadow: 6px 0 28px rgba(26, 26, 24, 0.12);
+  transform: translateX(-102%);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.map-panel.is-open {
+  transform: none;
+  pointer-events: auto;
+}
+
+.map-panel__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper) 80%, transparent);
+  backdrop-filter: blur(4px);
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.map-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Detail text needs padding inside the panel (image stays edge-to-edge) */
+.map-panel__body .detail__body {
+  padding: 1.3rem 1.2rem 1.5rem;
+}
+
+/* On phones the panel is replaced by the bottom sheet */
+@media (max-width: 767px) {
+  .map-panel {
+    display: none;
+  }
+  /* Color coding + schedule strip are enough on mobile; drop zone filter pills */
+  #zone-pills {
+    display: none;
+  }
+}
+
+/* ---- Hover tooltip ---- */
+.mapboxgl-popup.band-tooltip {
+  z-index: 5;
+}
+
+.mapboxgl-popup.band-tooltip .mapboxgl-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0.4rem 0.6rem;
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(26, 26, 24, 0.25);
+  pointer-events: none;
+}
+
+.mapboxgl-popup.band-tooltip .mapboxgl-popup-content strong {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.mapboxgl-popup.band-tooltip .mapboxgl-popup-content span {
+  font-size: 0.7rem;
+  opacity: 0.78;
+}
+
+.mapboxgl-popup.band-tooltip .mapboxgl-popup-tip {
+  display: none;
+}
+
+/* ---- Shared-location list picker ---- */
+.panel-list__head {
+  padding: 1.1rem 1.2rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.panel-list__item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1.2rem;
+  background: transparent;
+  border: 0;
+  border-top: var(--line);
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.panel-list__item:hover {
+  background: var(--color-bg-sunken);
+}
+
+.panel-list__dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.panel-list__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.panel-list__text strong {
+  font-size: 0.95rem;
+}
+
+.panel-list__text span {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.detail__back {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 1.2rem;
+  background: transparent;
+  border: 0;
+  border-bottom: var(--line);
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+}

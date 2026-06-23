@@ -2,20 +2,32 @@ import mapboxgl from 'mapbox-gl';
 import {
   MAP_DEFAULTS,
   ZONE_COLORS,
+  ZONES,
   DEFAULT_MARKER_COLOR,
   INFO_BOOTHS,
 } from './constants.js';
 
 const DESKTOP_BREAKPOINT = 768;
-const SOURCE_ID = 'bands';
-const LAYER_ID = 'band-points';
+const SRC_BANDS = 'bands';
+const LYR_BANDS = 'band-points';
+const SRC_BOOTHS = 'booths';
+const LYR_BOOTHS = 'booth-points';
+const SRC_ZONES = 'zone-fills';
+const LYR_ZONE_FILL = 'zone-fill';
+const LYR_ZONE_LINE = 'zone-line';
 const LOAD_TIMEOUT_MS = 12000;
 
 let map = null;
 let mapReady = false;
 let activeZone = 'all';
 let searchText = '';
-let latestData = { type: 'FeatureCollection', features: [] };
+let latestData = emptyFC();
+let hover = null; // { source, id }
+let tooltip = null;
+
+function emptyFC() {
+  return { type: 'FeatureCollection', features: [] };
+}
 
 function zoneColorExpression() {
   const expr = ['match', ['get', 'zone']];
@@ -24,6 +36,11 @@ function zoneColorExpression() {
   }
   expr.push(DEFAULT_MARKER_COLOR);
   return expr;
+}
+
+function zoneLabel(zoneId) {
+  const z = ZONES.find((x) => x.id === String(zoneId));
+  return z ? `${z.name} · ${z.neighborhood}` : zoneId ? `Zone ${zoneId}` : '';
 }
 
 function showMapMessage(container, title, body) {
@@ -38,46 +55,438 @@ function showMapMessage(container, title, body) {
   container.appendChild(el);
 }
 
+// ---------------------------------------------------------------- layer setup
+
 function setupLayers() {
   if (!map || mapReady) return;
   mapReady = true;
 
-  if (!map.getSource(SOURCE_ID)) {
-    map.addSource(SOURCE_ID, { type: 'geojson', data: latestData });
-  }
-
-  if (!map.getLayer(LAYER_ID)) {
-    map.addLayer({
-      id: LAYER_ID,
-      type: 'circle',
-      source: SOURCE_ID,
-      paint: {
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 8, 16, 14],
-        'circle-color': zoneColorExpression(),
-        'circle-stroke-width': 2.5,
-        'circle-stroke-color': '#F5F1E8',
-      },
-    });
-  }
-
-  addInfoBooths();
-
-  map.on('click', LAYER_ID, (e) => {
-    if (e.features?.[0]) openDetails(e.features[0]);
+  // Zone shading (sample proof-of-concept — convex hull of each zone's dots).
+  map.addSource(SRC_ZONES, { type: 'geojson', data: emptyFC() });
+  map.addLayer({
+    id: LYR_ZONE_FILL,
+    type: 'fill',
+    source: SRC_ZONES,
+    paint: { 'fill-color': zoneColorExpression(), 'fill-opacity': 0.08 },
   });
-  map.on('mouseenter', LAYER_ID, () => (map.getCanvas().style.cursor = 'pointer'));
-  map.on('mouseleave', LAYER_ID, () => (map.getCanvas().style.cursor = ''));
+  map.addLayer({
+    id: LYR_ZONE_LINE,
+    type: 'line',
+    source: SRC_ZONES,
+    paint: {
+      'line-color': zoneColorExpression(),
+      'line-opacity': 0.4,
+      'line-width': 1.5,
+      'line-dasharray': [2, 1.5],
+    },
+  });
 
+  // Band performers — coloured by zone, with a hover grow via feature-state.
+  map.addSource(SRC_BANDS, { type: 'geojson', data: latestData, generateId: true });
+  map.addLayer({
+    id: LYR_BANDS,
+    type: 'circle',
+    source: SRC_BANDS,
+    paint: {
+      'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        ['case', ['boolean', ['feature-state', 'hover'], false], 8, 6],
+        16,
+        ['case', ['boolean', ['feature-state', 'hover'], false], 17, 12],
+      ],
+      'circle-color': zoneColorExpression(),
+      'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3.5, 2.5],
+      'circle-stroke-color': '#F5F1E8',
+      'circle-opacity': 0.95,
+    },
+  });
+
+  // Info booths — visually distinct (paper fill, dark ring) and queryable.
+  map.addSource(SRC_BOOTHS, { type: 'geojson', data: boothsFC(), generateId: true });
+  map.addLayer({
+    id: LYR_BOOTHS,
+    type: 'circle',
+    source: SRC_BOOTHS,
+    paint: {
+      'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 10, 8],
+      'circle-color': '#F5F1E8',
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#1a1a18',
+    },
+  });
+
+  wireInteractions();
   applyFilter();
-  if (latestData.features.length) fitToData();
+  if (latestData.features.length) {
+    updateZoneFills();
+    fitToData();
+  }
   map.resize();
 }
 
+function boothsFC() {
+  return {
+    type: 'FeatureCollection',
+    features: INFO_BOOTHS.map((b) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: b.coords },
+      properties: { kind: 'booth', name: b.name, note: b.note },
+    })),
+  };
+}
+
+// ------------------------------------------------------------- interactions
+
+function wireInteractions() {
+  for (const [layer, source] of [
+    [LYR_BANDS, SRC_BANDS],
+    [LYR_BOOTHS, SRC_BOOTHS],
+  ]) {
+    map.on('mousemove', layer, (e) => {
+      map.getCanvas().style.cursor = 'pointer';
+      const f = e.features && e.features[0];
+      if (!f) return;
+      if (!hover || hover.id !== f.id || hover.source !== source) {
+        clearHover();
+        hover = { source, id: f.id };
+        map.setFeatureState(hover, { hover: true });
+      }
+      showTooltip(f);
+    });
+    map.on('mouseleave', layer, () => {
+      map.getCanvas().style.cursor = '';
+      clearHover();
+      hideTooltip();
+    });
+  }
+
+  map.on('click', (e) => {
+    const feats = map.queryRenderedFeatures(e.point, { layers: [LYR_BOOTHS, LYR_BANDS] });
+    if (!feats.length) {
+      closePanel();
+      return;
+    }
+    openDetails(dedupe(feats.map(toItem)));
+  });
+
+  document.getElementById('map-panel-close')?.addEventListener('click', closePanel);
+}
+
+function clearHover() {
+  if (hover) {
+    map.setFeatureState(hover, { hover: false });
+    hover = null;
+  }
+}
+
+function toItem(feature) {
+  const props = feature.properties || {};
+  return {
+    kind: props.kind === 'booth' ? 'booth' : 'band',
+    props,
+    coords: feature.geometry.coordinates,
+  };
+}
+
+function dedupe(items) {
+  const seen = new Set();
+  // Booths first, then bands, so an info booth leads a shared-address list.
+  return items
+    .sort((a, b) => (a.kind === 'booth' ? -1 : 0) - (b.kind === 'booth' ? -1 : 0))
+    .filter((it) => {
+      const key = `${it.kind}|${it.props.name || ''}|${(it.coords || []).join(',')}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+// ------------------------------------------------------------------- tooltip
+
+function showTooltip(f) {
+  const p = f.properties || {};
+  const isBooth = p.kind === 'booth';
+  const name = isBooth ? p.name || 'Info booth' : p.name || 'Performer';
+  const sub = isBooth
+    ? 'Information booth'
+    : [p.genre, [p.time_start, p.time_end].filter(Boolean).join('–')].filter(Boolean).join(' · ');
+  if (!tooltip) {
+    tooltip = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 14,
+      className: 'band-tooltip',
+    });
+  }
+  tooltip
+    .setLngLat(f.geometry.coordinates)
+    .setHTML(`<strong>${esc(name)}</strong>${sub ? `<span>${esc(sub)}</span>` : ''}`)
+    .addTo(map);
+}
+
+function hideTooltip() {
+  if (tooltip) tooltip.remove();
+}
+
+// --------------------------------------------------------------- detail views
+
+// Decide between the desktop side panel and the mobile bottom sheet.
+function openDetails(items) {
+  hideTooltip();
+  if (window.innerWidth >= DESKTOP_BREAKPOINT) openPanel(items);
+  else openSheet(items);
+}
+
+// Render either a single detail or a pickable list (when several things share
+// one spot — e.g. two bands on one porch, or a band + an info booth).
+function renderContent(container, items) {
+  if (items.length === 1) {
+    container.innerHTML = detailHTML(items[0]);
+    return;
+  }
+  container.innerHTML = listHTML(items);
+  container.querySelectorAll('[data-idx]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      container.innerHTML =
+        `<button class="detail__back" type="button">← All ${items.length} here</button>` +
+        detailHTML(items[Number(btn.dataset.idx)]);
+      container
+        .querySelector('.detail__back')
+        ?.addEventListener('click', () => renderContent(container, items));
+      container.scrollTop = 0;
+    });
+  });
+}
+
+function listHTML(items) {
+  return `<div class="panel-list">
+    <p class="panel-list__head">${items.length} at this spot</p>
+    ${items
+      .map((it, i) => {
+        const p = it.props || {};
+        const color =
+          it.kind === 'booth' ? '#1a1a18' : ZONE_COLORS[String(p.zone)] || DEFAULT_MARKER_COLOR;
+        const name = it.kind === 'booth' ? p.name || 'Info booth' : p.name || 'Performer';
+        const meta =
+          it.kind === 'booth'
+            ? 'Information booth'
+            : [p.genre, [p.time_start, p.time_end].filter(Boolean).join('–')]
+                .filter(Boolean)
+                .join(' · ');
+        return `<button class="panel-list__item" type="button" data-idx="${i}">
+          <span class="panel-list__dot" style="background:${color}"></span>
+          <span class="panel-list__text"><strong>${esc(name)}</strong>${
+            meta ? `<span>${esc(meta)}</span>` : ''
+          }</span>
+        </button>`;
+      })
+      .join('')}
+  </div>`;
+}
+
+function detailHTML(item) {
+  const p = item.props || {};
+
+  if (item.kind === 'booth') {
+    return `<div class="detail">
+      <div class="detail__body">
+        <span class="detail__genre">Information</span>
+        <h3 class="detail__name">${esc(p.name) || 'Info booth'}</h3>
+        ${p.note ? `<p class="detail__time">${esc(p.note)}</p>` : ''}
+        <p class="detail__desc">Stop by for printed schedules, maps, and a friendly volunteer.</p>
+      </div>
+    </div>`;
+  }
+
+  const [lng, lat] = item.coords || [];
+  const time = [p.time_start, p.time_end].filter(Boolean).join(' – ');
+  const directions =
+    Number.isFinite(lat) && Number.isFinite(lng)
+      ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`
+      : null;
+  const img = p.image || p.photo;
+
+  return `<div class="detail">
+    ${
+      img
+        ? `<div class="detail__media"><img class="detail__img" src="${esc(
+            img
+          )}" alt="" loading="lazy" onerror="this.closest('.detail__media')?.remove()" /></div>`
+        : ''
+    }
+    <div class="detail__body">
+      ${p.genre ? `<span class="detail__genre">${esc(p.genre)}</span>` : ''}
+      <h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>
+      ${time ? `<p class="detail__time">${esc(time)}${p.zone ? ` · ${esc(zoneLabel(p.zone))}` : ''}</p>` : ''}
+      ${p.address ? `<p class="detail__addr">${esc(p.address)}</p>` : ''}
+      ${p.description ? `<p class="detail__desc">${esc(p.description)}</p>` : ''}
+      <div class="detail__actions">
+        ${directions ? `<a class="detail__btn" href="${directions}" target="_blank" rel="noopener">Walking directions</a>` : ''}
+        ${p.link ? `<a class="detail__btn detail__btn--ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Listen</a>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// Desktop: left-side panel overlay.
+function openPanel(items) {
+  const panel = document.getElementById('map-panel');
+  const body = document.getElementById('map-panel-body');
+  if (!panel || !body) return;
+  renderContent(body, items);
+  body.scrollTop = 0;
+  panel.classList.add('is-open');
+}
+
+function closePanel() {
+  document.getElementById('map-panel')?.classList.remove('is-open');
+}
+
+// Mobile: bottom sheet that slides up.
+function openSheet(items) {
+  let sheet = document.querySelector('.bottom-sheet');
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.className = 'bottom-sheet';
+    sheet.innerHTML = `
+      <div class="bottom-sheet__panel" role="dialog" aria-modal="true">
+        <div class="bottom-sheet__handle" aria-hidden="true"></div>
+        <button class="bottom-sheet__close" aria-label="Close">×</button>
+        <div class="bottom-sheet__body"></div>
+      </div>`;
+    document.body.appendChild(sheet);
+    sheet.querySelector('.bottom-sheet__close').addEventListener('click', closeSheet);
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet) closeSheet();
+    });
+  }
+  renderContent(sheet.querySelector('.bottom-sheet__body'), items);
+  requestAnimationFrame(() => sheet.classList.add('is-open'));
+}
+
+function closeSheet() {
+  document.querySelector('.bottom-sheet')?.classList.remove('is-open');
+}
+
+// ------------------------------------------------------------------- data/zone
+
+export function setBandData(geojson) {
+  latestData = geojson || latestData;
+  if (!map || !mapReady) return;
+  const src = map.getSource(SRC_BANDS);
+  if (src) {
+    src.setData(latestData);
+    updateZoneFills();
+    applyFilter();
+    fitToData();
+  }
+}
+
+function fitToData() {
+  if (!map) return;
+  const feats = latestData.features;
+  if (!feats.length) return;
+  const bounds = new mapboxgl.LngLatBounds();
+  feats.forEach((f) => bounds.extend(f.geometry.coordinates));
+  map.fitBounds(bounds, {
+    padding: { top: 80, bottom: 80, left: 40, right: 40 },
+    maxZoom: 15.5,
+    duration: 700,
+  });
+}
+
+// Build a light, padded convex-hull polygon per zone from the band dots. This
+// is a proof-of-concept overlay; swap for hand-drawn zone GeoJSON later.
+function updateZoneFills() {
+  const src = map.getSource(SRC_ZONES);
+  if (!src) return;
+  const byZone = {};
+  for (const f of latestData.features) {
+    const z = String(f.properties?.zone ?? '').trim();
+    if (!z) continue;
+    (byZone[z] ||= []).push(f.geometry.coordinates);
+  }
+  const features = [];
+  for (const [zone, pts] of Object.entries(byZone)) {
+    if (pts.length < 3) continue;
+    let hull = convexHull(pts);
+    if (hull.length < 3) continue;
+    hull = padHull(hull, 1.5);
+    hull.push(hull[0]);
+    features.push({
+      type: 'Feature',
+      properties: { zone },
+      geometry: { type: 'Polygon', coordinates: [hull] },
+    });
+  }
+  src.setData({ type: 'FeatureCollection', features });
+}
+
+// Andrew's monotone chain convex hull. Points are [lng, lat].
+function convexHull(points) {
+  const pts = points.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (pts.length < 3) return pts;
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0)
+      lower.pop();
+    lower.push(p);
+  }
+  const upper = [];
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0)
+      upper.pop();
+    upper.push(p);
+  }
+  upper.pop();
+  lower.pop();
+  return lower.concat(upper);
+}
+
+// Expand hull vertices outward from the centroid so the fill reads as a soft
+// neighborhood blob rather than hugging the outermost dots.
+function padHull(hull, factor) {
+  const n = hull.length;
+  if (!n) return hull;
+  const cx = hull.reduce((s, p) => s + p[0], 0) / n;
+  const cy = hull.reduce((s, p) => s + p[1], 0) / n;
+  return hull.map(([x, y]) => [cx + (x - cx) * factor, cy + (y - cy) * factor]);
+}
+
+// ----------------------------------------------------------------- filtering
+
+export function setZoneFilter(zoneId) {
+  activeZone = zoneId || 'all';
+  applyFilter();
+}
+
+export function setSearchFilter(text) {
+  searchText = (text || '').trim().toLowerCase();
+  applyFilter();
+}
+
+function applyFilter() {
+  if (!map || !map.getLayer(LYR_BANDS)) return;
+  const clauses = ['all'];
+  if (activeZone !== 'all') {
+    clauses.push(['==', ['get', 'zone'], activeZone]);
+  }
+  if (searchText) {
+    clauses.push(['>=', ['index-of', searchText, ['downcase', ['coalesce', ['get', 'name'], '']]], 0]);
+  }
+  map.setFilter(LYR_BANDS, clauses.length > 1 ? clauses : null);
+}
+
+// --------------------------------------------------------------------- init
+
 // Returns a Promise<map|null> — resolves when style + layers are ready, or on timeout/error.
 export function initMap({ container, token }) {
-  const el = typeof container === 'string'
-    ? document.querySelector(container)
-    : container;
+  const el = typeof container === 'string' ? document.querySelector(container) : container;
 
   return new Promise((resolve) => {
     let settled = false;
@@ -138,15 +547,11 @@ export function initMap({ container, token }) {
 
     map.on('load', () => {
       setupLayers();
-      // Belt-and-suspenders: the flex layout can settle (fonts, controls) just
-      // after init, leaving Mapbox's canvas sized to a stale/zero box and
-      // rendering blank. Resize once now and again on the next frame.
       map.resize();
       requestAnimationFrame(() => map?.resize());
       finish(map);
     });
 
-    // Keep the GL canvas locked to its container size for the life of the map.
     if ('ResizeObserver' in window) {
       const ro = new ResizeObserver(() => map?.resize());
       ro.observe(el);
@@ -165,7 +570,6 @@ export function initMap({ container, token }) {
       }
     });
 
-    // Safety net: if 'load' never fires, try anyway after timeout.
     setTimeout(() => {
       if (settled) return;
       console.warn('[map] load timeout — forcing setup');
@@ -185,130 +589,6 @@ export function initMap({ container, token }) {
     requestAnimationFrame(() => map?.resize());
     window.addEventListener('resize', () => map?.resize());
   });
-}
-
-function addInfoBooths() {
-  for (const booth of INFO_BOOTHS) {
-    const node = document.createElement('div');
-    node.className = 'info-booth-marker';
-    node.title = `${booth.name} — ${booth.note}`;
-    node.textContent = 'i';
-    new mapboxgl.Marker({ element: node, anchor: 'center' })
-      .setLngLat(booth.coords)
-      .setPopup(
-        new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(
-          `<strong>${esc(booth.name)}</strong><br>${esc(booth.note)}`
-        )
-      )
-      .addTo(map);
-  }
-}
-
-export function setBandData(geojson) {
-  latestData = geojson || latestData;
-  if (!map) return;
-  if (!mapReady) return; // will apply on setupLayers via latestData
-  const src = map.getSource(SOURCE_ID);
-  if (src) {
-    src.setData(latestData);
-    fitToData();
-  }
-}
-
-function fitToData() {
-  if (!map) return;
-  const feats = latestData.features;
-  if (!feats.length) return;
-  const bounds = new mapboxgl.LngLatBounds();
-  feats.forEach((f) => bounds.extend(f.geometry.coordinates));
-  map.fitBounds(bounds, {
-    padding: { top: 80, bottom: 80, left: 40, right: 40 },
-    maxZoom: 15.5,
-    duration: 700,
-  });
-}
-
-export function setZoneFilter(zoneId) {
-  activeZone = zoneId || 'all';
-  applyFilter();
-}
-
-export function setSearchFilter(text) {
-  searchText = (text || '').trim().toLowerCase();
-  applyFilter();
-}
-
-function applyFilter() {
-  if (!map || !map.getLayer(LAYER_ID)) return;
-  const clauses = ['all'];
-  if (activeZone !== 'all') {
-    clauses.push(['==', ['get', 'zone'], activeZone]);
-  }
-  if (searchText) {
-    clauses.push(['>=', ['index-of', searchText, ['downcase', ['coalesce', ['get', 'name'], '']]], 0]);
-  }
-  map.setFilter(LAYER_ID, clauses.length > 1 ? clauses : null);
-}
-
-function openDetails(feature) {
-  const html = detailHTML(feature.properties || {}, feature.geometry.coordinates);
-  if (window.innerWidth >= DESKTOP_BREAKPOINT) {
-    new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '340px', className: 'band-popup' })
-      .setLngLat(feature.geometry.coordinates)
-      .setHTML(html)
-      .addTo(map);
-  } else {
-    openBottomSheet(html);
-  }
-}
-
-function detailHTML(p, coords) {
-  const [lng, lat] = coords || [];
-  const time = [p.time_start, p.time_end].filter(Boolean).join(' – ');
-  const directions = Number.isFinite(lat) && Number.isFinite(lng)
-    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-    : null;
-  const img = p.image || p.photo;
-
-  return `<div class="detail">
-    ${img ? `<div class="detail__media"><img class="detail__img" src="${esc(img)}" alt="" loading="lazy" onerror="this.closest('.detail__media')?.remove()" /></div>` : ''}
-    <div class="detail__body">
-      ${p.genre ? `<span class="detail__genre">${esc(p.genre)}</span>` : ''}
-      <h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>
-      ${time ? `<p class="detail__time">${esc(time)}${p.zone ? ` · Zone ${esc(p.zone)}` : ''}</p>` : ''}
-      ${p.address ? `<p class="detail__addr">${esc(p.address)}</p>` : ''}
-      ${p.description ? `<p class="detail__desc">${esc(p.description)}</p>` : ''}
-      <div class="detail__actions">
-        ${directions ? `<a class="detail__btn" href="${directions}" target="_blank" rel="noopener">Get directions</a>` : ''}
-        ${p.link ? `<a class="detail__btn detail__btn--ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Listen</a>` : ''}
-      </div>
-    </div>
-  </div>`;
-}
-
-function openBottomSheet(html) {
-  let sheet = document.querySelector('.bottom-sheet');
-  if (!sheet) {
-    sheet = document.createElement('div');
-    sheet.className = 'bottom-sheet';
-    sheet.innerHTML = `
-      <div class="bottom-sheet__panel" role="dialog" aria-modal="true">
-        <div class="bottom-sheet__handle" aria-hidden="true"></div>
-        <button class="bottom-sheet__close" aria-label="Close">×</button>
-        <div class="bottom-sheet__body"></div>
-      </div>`;
-    document.body.appendChild(sheet);
-    sheet.querySelector('.bottom-sheet__close').addEventListener('click', closeBottomSheet);
-    sheet.addEventListener('click', (e) => {
-      if (e.target === sheet) closeBottomSheet();
-    });
-  }
-  sheet.querySelector('.bottom-sheet__body').innerHTML = html;
-  requestAnimationFrame(() => sheet.classList.add('is-open'));
-}
-
-function closeBottomSheet() {
-  document.querySelector('.bottom-sheet')?.classList.remove('is-open');
 }
 
 function esc(value) {
