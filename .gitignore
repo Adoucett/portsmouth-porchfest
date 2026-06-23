@@ -70,6 +70,10 @@ web_modules/
 .env.*
 !.env.example
 
+# PRIVATE organizer Google Drive dump — NEVER commit or deploy this.
+no_commit/
+**/no_commit/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
