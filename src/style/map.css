@@ -620,6 +620,35 @@ body.map-route .site-footer {
   cursor: pointer;
 }
 
+/* ---- Basemap (satellite) toggle ---- */
+.map-basemap {
+  position: absolute;
+  z-index: 6;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.5rem 0.85rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(26, 26, 24, 0.22);
+}
+
+.map-basemap:hover {
+  background: var(--color-bg-sunken);
+}
+
+.map-basemap.is-active {
+  background: var(--ink-800);
+  color: var(--paper-50);
+  border-color: var(--ink-800);
+}
+
 /* ---- Search results list (overlays the map on search) ---- */
 .map-results {
   position: absolute;

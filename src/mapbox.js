@@ -11,10 +11,14 @@ import {
 const DESKTOP_BREAKPOINT = 768;
 const SRC_BANDS = 'bands';
 const LYR_BANDS = 'band-points';
+const LYR_BAND_HALO = 'band-halo';
 const SRC_ZONES = 'zone-fills';
 const LYR_ZONE_FILL = 'zone-fill';
 const LYR_ZONE_LINE = 'zone-line';
+const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
 const LOAD_TIMEOUT_MS = 12000;
+
+let basemap = 'map'; // 'map' (custom Studio style) | 'satellite' (hybrid imagery)
 
 let map = null;
 let mapReady = false;
@@ -60,61 +64,130 @@ function setupLayers() {
   if (!map || mapReady) return;
   mapReady = true;
 
-  // Zone shading (sample proof-of-concept — convex hull of each zone's dots).
-  map.addSource(SRC_ZONES, { type: 'geojson', data: emptyFC() });
-  map.addLayer({
-    id: LYR_ZONE_FILL,
-    type: 'fill',
-    source: SRC_ZONES,
-    paint: { 'fill-color': zoneColorExpression(), 'fill-opacity': 0.08 },
-  });
-  map.addLayer({
-    id: LYR_ZONE_LINE,
-    type: 'line',
-    source: SRC_ZONES,
-    paint: {
-      'line-color': zoneColorExpression(),
-      'line-opacity': 0.4,
-      'line-width': 1.5,
-      'line-dasharray': [2, 1.5],
-    },
-  });
-
-  // Band performers — coloured by zone, with a hover grow via feature-state.
-  map.addSource(SRC_BANDS, { type: 'geojson', data: latestData, generateId: true });
-  map.addLayer({
-    id: LYR_BANDS,
-    type: 'circle',
-    source: SRC_BANDS,
-    paint: {
-      'circle-radius': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        12,
-        ['case', ['boolean', ['feature-state', 'hover'], false], 8, 6],
-        16,
-        ['case', ['boolean', ['feature-state', 'hover'], false], 17, 12],
-      ],
-      'circle-color': zoneColorExpression(),
-      'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3.5, 2.5],
-      'circle-stroke-color': '#F5F1E8',
-      'circle-opacity': 0.95,
-    },
-  });
-
-  // Info booths — the "i" badge markers (DOM). Bands that share a booth's
-  // address are fanned out (see spreadCoincident) so nothing overlaps.
+  addDataLayers();
+  // Info booths are DOM markers — they persist across setStyle, so add once.
   addInfoBooths();
-
   applyMaritimeTint();
+  // Layer-id-delegated handlers persist across setStyle, so wire once.
   wireInteractions();
-  applyFilter();
-  if (latestData.features.length) {
-    updateZoneFills();
-    fitToData();
-  }
+  if (latestData.features.length) fitToData();
   map.resize();
+}
+
+// Adds the custom sources + layers. Re-run after every setStyle() (basemap
+// switch) because changing the style wipes non-style sources/layers. Idempotent.
+function addDataLayers() {
+  if (!map.getSource(SRC_ZONES)) {
+    map.addSource(SRC_ZONES, { type: 'geojson', data: emptyFC() });
+  }
+  if (!map.getLayer(LYR_ZONE_FILL)) {
+    map.addLayer({
+      id: LYR_ZONE_FILL,
+      type: 'fill',
+      source: SRC_ZONES,
+      paint: { 'fill-color': zoneColorExpression(), 'fill-opacity': 0.08 },
+    });
+  }
+  if (!map.getLayer(LYR_ZONE_LINE)) {
+    map.addLayer({
+      id: LYR_ZONE_LINE,
+      type: 'line',
+      source: SRC_ZONES,
+      paint: {
+        'line-color': zoneColorExpression(),
+        'line-opacity': 0.4,
+        'line-width': 1.5,
+        'line-dasharray': [2, 1.5],
+      },
+    });
+  }
+
+  if (!map.getSource(SRC_BANDS)) {
+    map.addSource(SRC_BANDS, { type: 'geojson', data: latestData, generateId: true });
+  }
+  // Dark contrast halo beneath the dots — invisible on the paper map, faded in
+  // over satellite imagery so the coloured dots stay readable.
+  if (!map.getLayer(LYR_BAND_HALO)) {
+    map.addLayer({
+      id: LYR_BAND_HALO,
+      type: 'circle',
+      source: SRC_BANDS,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 9, 16, 18],
+        'circle-color': '#14140f',
+        'circle-opacity': 0,
+        'circle-blur': 0.4,
+      },
+    });
+  }
+  // Band performers — coloured by zone, with a hover grow via feature-state.
+  if (!map.getLayer(LYR_BANDS)) {
+    map.addLayer({
+      id: LYR_BANDS,
+      type: 'circle',
+      source: SRC_BANDS,
+      paint: {
+        'circle-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          12,
+          ['case', ['boolean', ['feature-state', 'hover'], false], 8, 6],
+          16,
+          ['case', ['boolean', ['feature-state', 'hover'], false], 17, 12],
+        ],
+        'circle-color': zoneColorExpression(),
+        'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3.5, 2.5],
+        'circle-stroke-color': '#F5F1E8',
+        'circle-opacity': 0.95,
+      },
+    });
+  }
+
+  const src = map.getSource(SRC_BANDS);
+  if (src) src.setData(spreadCoincident(latestData));
+  updateZoneFills();
+  applyFilter();
+  applyBasemapStyling();
+}
+
+// Boost dot contrast over satellite imagery; revert to the paper styling on map.
+function applyBasemapStyling() {
+  if (!map || !map.getLayer(LYR_BANDS)) return;
+  const sat = basemap === 'satellite';
+  if (map.getLayer(LYR_BAND_HALO)) {
+    map.setPaintProperty(LYR_BAND_HALO, 'circle-opacity', sat ? 0.5 : 0);
+  }
+  map.setPaintProperty(LYR_BANDS, 'circle-stroke-color', sat ? '#ffffff' : '#F5F1E8');
+  map.setPaintProperty(LYR_BANDS, 'circle-stroke-width', [
+    'case',
+    ['boolean', ['feature-state', 'hover'], false],
+    sat ? 4.5 : 3.5,
+    sat ? 3 : 2.5,
+  ]);
+}
+
+export function getBasemap() {
+  return basemap;
+}
+
+export function toggleBasemap() {
+  return setBasemap(basemap === 'satellite' ? 'map' : 'satellite');
+}
+
+// Swap the basemap. setStyle() wipes our custom layers, so we re-add them on the
+// new style's load. Returns the active basemap.
+export function setBasemap(mode) {
+  if (!map || mode === basemap) return basemap;
+  const url = mode === 'satellite' ? SATELLITE_STYLE : MAP_DEFAULTS.style;
+  if (!url) return basemap;
+  basemap = mode;
+  map.setStyle(url);
+  map.once('style.load', () => {
+    addDataLayers();
+    if (mode === 'map') applyMaritimeTint();
+  });
+  return basemap;
 }
 
 // Light maritime nudge: tint the base style's water layers toward harbor blue.

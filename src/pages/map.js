@@ -5,6 +5,7 @@ import {
   setZoneFilter,
   setSearchFilter,
   focusBand,
+  toggleBasemap,
 } from '../mapbox.js';
 import { initSite } from '../site.js';
 import { ZONES, ZONE_COLORS, DEFAULT_MARKER_COLOR, MAPBOX_TOKEN } from '../constants.js';
@@ -172,6 +173,17 @@ function renderResults(q, list) {
   });
 }
 
+function wireBasemap() {
+  const btn = document.getElementById('map-basemap');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const sat = toggleBasemap() === 'satellite';
+    btn.textContent = sat ? 'Map view' : 'Satellite';
+    btn.setAttribute('aria-pressed', String(sat));
+    btn.classList.toggle('is-active', sat);
+  });
+}
+
 function setLoading(on) {
   const el = document.getElementById('map-loading');
   if (el) el.hidden = !on;
@@ -211,6 +223,8 @@ async function boot() {
     setLoading(false);
 
     if (!map) return;
+
+    wireBasemap();
 
     // Load band data — live sheet first, sample fallback.
     let geojson = await fetchBands();
