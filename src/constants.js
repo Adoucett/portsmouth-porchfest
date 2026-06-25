@@ -37,11 +37,16 @@ export const THEME = {
   label: '2026',
   title: 'The Porch Ship',
   tagline: 'A free-sailing music festival washing over Portsmouth’s neighborhoods.',
-  // One-line "what this year feels like," from the brief's verbal inspiration.
-  verbal:
-    'A bright early-fall afternoon in the neighborhoods — gardens still green, neighbors and dogs out, music drifting from porch to porch.',
+  // Attendee tips shown as the "How to PorchFest" list.
+  howTo: [
+    'Take public transit when you can',
+    'Plan your porch route ahead of time',
+    'Enjoy the non-alcoholic food & drink',
+    'Use the sidewalks — keep streets clear for safety',
+    'Be considerate of neighbors and their yards',
+  ],
   // The organizers' goal for the year (from the Linktree).
-  goal: 'Aiming for 40 porches and 80 performances.',
+  goal: '40 porches and 80+ performances.',
   // Instagram feed widget id (Behold/LightWidget). Leave '' to show a Follow CTA
   // instead. Paste the embed id once @portsmouthporchfest is connected.
   instagramWidget: '',

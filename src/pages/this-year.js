@@ -25,13 +25,18 @@ initSite();
 setImg('ty-banner', bannerUrl, `${bannerMobileUrl} 1200w, ${bannerUrl} 2000w`, '(min-width: 768px) 740px, 100vw');
 setImg('ty-ship', shipUrl, `${shipMobileUrl} 900w, ${shipUrl} 1600w`, '(min-width: 768px) 660px, 92vw');
 setSrc('ty-poster', posterUrl);
-setText('ty-tagline', THEME.tagline);
 
-// --- Spirit: verbal inspiration + mission/vision + goal ---
-setText('ty-verbal', THEME.verbal);
+// --- How to PorchFest + mission/vision/goal ---
+renderHowTo();
 setText('ty-mission', ABOUT.mission);
 setText('ty-vision', ABOUT.vision);
 setText('ty-goal', THEME.goal);
+
+function renderHowTo() {
+  const host = document.getElementById('ty-howto');
+  if (!host) return;
+  host.innerHTML = (THEME.howTo || []).map((t) => `<li>${esc(t)}</li>`).join('');
+}
 
 const dl = document.getElementById('ty-poster-dl');
 if (dl) {

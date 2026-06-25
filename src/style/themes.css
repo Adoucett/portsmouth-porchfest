@@ -22,21 +22,24 @@ body.theme-2026 {
   background: var(--color-bg);
 }
 
-/* Hero — immersive full-bleed wash on desktop, fading into the paper below */
+/* Hero — immersive full-bleed wash on desktop, fading into the paper below.
+   Tight vertical rhythm so the banner + ship + date read as one compact unit. */
 .ty-hero {
   position: relative;
   width: 100%;
   text-align: center;
-  padding: clamp(1.5rem, 4vw, 3rem) var(--pad) clamp(3rem, 8vw, 6rem);
+  padding: clamp(1rem, 3vw, 2rem) var(--pad) clamp(1.5rem, 4vw, 3rem);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.6vw, 1.1rem);
   background-image: linear-gradient(
       180deg,
-      rgba(245, 241, 232, 0.28) 0%,
-      rgba(245, 241, 232, 0) 22%,
-      rgba(245, 241, 232, 0) 60%,
-      rgba(245, 241, 232, 0.94) 100%
+      rgba(245, 241, 232, 0.25) 0%,
+      rgba(245, 241, 232, 0) 24%,
+      rgba(245, 241, 232, 0) 62%,
+      rgba(245, 241, 232, 0.95) 100%
     ),
     var(--theme-wash);
   background-size: cover;
@@ -48,92 +51,98 @@ body.theme-2026 {
     --theme-wash: url('../assets/2026/wash-blue-2560.jpg');
   }
   .ty-hero {
-    min-height: calc(100svh - 64px);
-    justify-content: center;
+    min-height: calc(100svh - 60px);
   }
 }
 
-/* Banner ribbon sits in front; the ship's masts tuck up behind its lower edge
-   so the two read as one illustration. */
+/* Banner ribbon sits in front; the ship's masts tuck up well behind its lower
+   edge so the two read as one illustration. */
 .ty-hero__banner {
   display: block;
-  width: min(740px, 100%);
+  width: min(860px, 102%);
   margin: 0 auto;
   position: relative;
   z-index: 2;
-  filter: drop-shadow(0 2px 6px rgba(26, 26, 24, 0.16));
+  filter: drop-shadow(0 3px 8px rgba(26, 26, 24, 0.18));
   will-change: transform;
 }
 
 .ty-hero__shipwrap {
   position: relative;
   z-index: 1;
-  width: min(660px, 92%);
-  /* pull up so masts/flag overlap into the banner's empty lower ribbon */
-  margin: clamp(-3rem, -5vw, -1.5rem) auto clamp(1rem, 3vw, 1.75rem);
+  width: min(680px, 90%);
+  /* deep tuck so masts/flag overlap into the banner's lower ribbon */
+  margin: clamp(-5rem, -9vw, -2.5rem) auto clamp(0.25rem, 1.5vw, 0.75rem);
   will-change: transform;
 }
 
 .ty-hero__ship {
   display: block;
   width: 100%;
-  transform-origin: 50% 88%;
-  filter: drop-shadow(0 14px 30px rgba(26, 26, 24, 0.28));
+  transform-origin: 50% 90%;
+  filter: drop-shadow(0 16px 32px rgba(26, 26, 24, 0.3));
 }
 
-/* Playful interplay: the ship rocks like it's at sea while the banner gently
-   sways out of phase. Both gated behind reduced-motion. */
+/* Motion: a brief arrival (banner enlarges in, ship rises up to meet it) then a
+   gentle idle — ship rocks, banner sways + breathes out of phase. Gated behind
+   reduced-motion; base styles keep everything visible if motion is off. */
 @media (prefers-reduced-motion: no-preference) {
-  .ty-hero__ship {
-    animation: ty-rock 6.5s ease-in-out infinite;
-  }
   .ty-hero__banner {
-    animation: ty-sway 9s ease-in-out infinite;
+    animation: ty-banner-in 0.9s var(--ease-out) both, ty-sway 9s ease-in-out 1s infinite;
   }
+  .ty-hero__ship {
+    animation: ty-ship-in 1s var(--ease-out) both, ty-rock 6.5s ease-in-out 1.05s infinite;
+  }
+  .ty-deets,
+  .ty-hero__cta {
+    animation: ty-fade-up 0.7s var(--ease-out) 0.55s both;
+  }
+}
+
+@keyframes ty-banner-in {
+  from { opacity: 0; transform: scale(0.82) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes ty-ship-in {
+  from { opacity: 0; transform: translateY(48px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ty-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes ty-rock {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-1.2deg);
-  }
-  50% {
-    transform: translateY(-9px) rotate(1.2deg);
-  }
+  0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+  50% { transform: translateY(-9px) rotate(1.2deg); }
 }
 
 @keyframes ty-sway {
-  0%,
-  100% {
-    transform: rotate(-0.6deg);
-  }
-  50% {
-    transform: rotate(0.6deg);
-  }
+  0%, 100% { transform: rotate(-0.7deg) scale(1); }
+  50% { transform: rotate(0.7deg) scale(1.015); }
 }
 
+/* Compact date line right under the ship (not a big poster block) */
 .ty-deets {
   font-family: var(--font-poster);
   font-weight: 400;
-  line-height: 0.92;
-  letter-spacing: 0.01em;
-  font-size: clamp(1.9rem, 6vw, 3.8rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-size: clamp(1.1rem, 3vw, 1.9rem);
   color: var(--theme-ink);
   text-transform: uppercase;
-  margin: 0 auto 0.4rem;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.9rem;
+  justify-content: center;
   will-change: transform, opacity;
 }
 
 .ty-deets span {
-  display: block;
-}
-
-.ty-hero__sub {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
-  color: var(--color-text);
-  margin-bottom: 1.5rem;
+  display: inline-block;
 }
 
 .ty-hero__cta {
@@ -219,19 +228,35 @@ body.theme-2026 {
   max-width: var(--maxw-prose);
 }
 
-/* Spirit: verbal inspiration + mission/vision + goal --------------- */
-.ty-verbal {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 500;
-  font-size: clamp(1.3rem, 3.2vw, 2.1rem);
-  line-height: 1.25;
-  max-width: 36ch;
-  margin: 0 auto clamp(1.5rem, 4vw, 2.5rem);
-  text-align: center;
-  color: var(--theme-ink);
+/* How to PorchFest — left-justified tips list ---------------------- */
+.ty-howto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+  max-width: var(--maxw-prose);
 }
 
+.ty-howto li {
+  position: relative;
+  padding-left: 1.6rem;
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  line-height: 1.4;
+}
+
+.ty-howto li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+/* Spirit: mission/vision + goal ------------------------------------ */
 .ty-spirit {
   display: grid;
   grid-template-columns: 1fr;
@@ -260,7 +285,7 @@ body.theme-2026 {
   line-height: 1.1;
   color: var(--color-accent-ink);
   margin-top: clamp(1.5rem, 4vw, 2.5rem);
-  text-align: center;
+  text-align: left;
 }
 
 /* Instagram --------------------------------------------------------- */

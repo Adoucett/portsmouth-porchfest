@@ -81,4 +81,10 @@ export function initSite() {
   renderFooter();
   hydrateFestival();
   mountIcons();
+
+  // Dev-only WYSIWYG "Review Mode" for live copy edits + notes. The DEV guard is
+  // a compile-time constant, so this dynamic import is stripped from prod builds.
+  if (import.meta.env.DEV) {
+    import('./dev/review-mode.js').then((m) => m.initReviewMode()).catch(() => {});
+  }
 }

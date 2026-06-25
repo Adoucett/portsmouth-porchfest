@@ -142,9 +142,12 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-# Cursor local hook state
-.cursor/hooks/state/
+# Editor / CLI machine-local state — never commit
+.cursor/
+.vercel/
 
 # Private organizer files — never commit
 no_commit/
-.vercel
+
+# Review Mode exports — transient scratch notes, not part of the site
+review/
