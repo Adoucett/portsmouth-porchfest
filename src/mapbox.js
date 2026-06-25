@@ -528,6 +528,16 @@ export function setSearchFilter(text) {
   applyFilter();
 }
 
+// Fly to a band/booth feature and open its detail (side panel on desktop, bottom
+// sheet on mobile). Used by the search results list on the map page.
+export function focusBand(feature) {
+  if (!map || !feature || !feature.geometry) return;
+  const coords = feature.geometry.coordinates;
+  map.flyTo({ center: coords, zoom: 16, duration: 800, essential: true });
+  const props = feature.properties || {};
+  openDetails([{ kind: props.kind === 'booth' ? 'booth' : 'band', props, coords }]);
+}
+
 function applyFilter() {
   if (!map || !map.getLayer(LYR_BANDS)) return;
   const clauses = ['all'];
