@@ -5,11 +5,12 @@ import {
   FESTIVAL,
   ANNOUNCEMENTS,
   SHEET_ANNOUNCEMENTS_CSV_URL,
+  SHEET_INSTAGRAM_CSV_URL,
   ZONE_COLORS,
   DEFAULT_MARKER_COLOR,
   ZONES,
 } from '../constants.js';
-import { fetchBands, fetchAnnouncements } from '../data.js';
+import { fetchBands, fetchAnnouncements, fetchInstagramPosts } from '../data.js';
 import { SAMPLE_BANDS } from '../sample-data.js';
 
 import bannerUrl from '../assets/2026/banner.png';
@@ -56,25 +57,81 @@ renderInstagram();
 initParallax();
 initReveal();
 
-// --- Instagram: live widget if configured, else a Follow CTA (never broken) ---
-function renderInstagram() {
+// --- Instagram. Priority: (1) Mirror App auto-feed embed, (2) official IG post
+// embeds from the sheet "instagram" tab / THEME.instagramPosts, (3) Follow CTA. ---
+async function renderInstagram() {
   const host = document.getElementById('ty-instagram');
   if (!host) return;
-  const id = THEME.instagramWidget;
-  if (id) {
-    // LightWidget embed (swap for a Behold web component if you prefer that tool).
-    host.innerHTML = `<iframe src="https://cdn.lightwidget.com/widgets/${esc(id)}.html" scrolling="no" allowtransparency="true" class="lightwidget-widget" style="width:100%;border:0;overflow:hidden;"></iframe>`;
-    if (!document.getElementById('lightwidget-script')) {
-      const s = document.createElement('script');
-      s.id = 'lightwidget-script';
-      s.src = 'https://cdn.lightwidget.com/widgets/lightwidget.js';
-      document.body.appendChild(s);
-    }
-  } else {
+
+  if (THEME.instagramEmbedUrl) {
+    renderMirrorFeed(host, THEME.instagramEmbedUrl);
+    return;
+  }
+
+  let posts = [];
+  try {
+    posts = await fetchInstagramPosts(SHEET_INSTAGRAM_CSV_URL);
+  } catch {
+    posts = [];
+  }
+  if (!posts.length) posts = THEME.instagramPosts || [];
+  posts = posts.slice(0, 6);
+
+  if (!posts.length) {
     host.innerHTML = `<div class="ty-ig-cta">
       <p class="ty-update__text">Lineup drops, porch reveals, and day-of updates land on our Instagram first.</p>
       <a class="btn" href="${esc(FESTIVAL.instagram)}" target="_blank" rel="noopener">Follow @portsmouthporchfest</a>
     </div>`;
+    return;
+  }
+
+  host.classList.add('ty-ig--grid');
+  host.innerHTML = posts
+    .map(
+      (u) =>
+        `<blockquote class="instagram-media" data-instgrm-permalink="${esc(u)}" data-instgrm-version="14"></blockquote>`
+    )
+    .join('');
+  loadInstagramEmbeds();
+}
+
+let igRequested = false;
+function loadInstagramEmbeds() {
+  if (window.instgrm?.Embeds) {
+    window.instgrm.Embeds.process();
+    return;
+  }
+  if (igRequested) return;
+  igRequested = true;
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.instagram.com/embed.js';
+  s.onload = () => window.instgrm?.Embeds?.process();
+  document.body.appendChild(s);
+}
+
+// Mirror App auto-feed: an iframe + their bridge script that posts height back so
+// the iframe auto-resizes to fit the feed content.
+function renderMirrorFeed(host, url) {
+  host.classList.add('ty-ig--mirror');
+  const frame = document.createElement('iframe');
+  frame.src = url;
+  frame.title = 'Instagram feed';
+  frame.loading = 'lazy';
+  frame.scrolling = 'no';
+  frame.style.cssText = 'width:100%;border:none;overflow:hidden;min-height:520px;';
+  frame.addEventListener('load', () => window.iFrameSetup?.(frame));
+  host.innerHTML = '';
+  host.appendChild(frame);
+
+  if (window.iFrameSetup) {
+    window.iFrameSetup(frame);
+  } else if (!document.getElementById('mirror-bridge')) {
+    const s = document.createElement('script');
+    s.id = 'mirror-bridge';
+    s.src = 'https://cdn.jsdelivr.net/npm/@mirrorapp/iframe-bridge@latest/dist/index.umd.js';
+    s.onload = () => window.iFrameSetup?.(frame);
+    document.body.appendChild(s);
   }
 }
 

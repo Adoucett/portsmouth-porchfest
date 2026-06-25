@@ -47,9 +47,13 @@ export const THEME = {
   ],
   // The organizers' goal for the year (from the Linktree).
   goal: '40 porches and 80+ performances.',
-  // Instagram feed widget id (Behold/LightWidget). Leave '' to show a Follow CTA
-  // instead. Paste the embed id once @portsmouthporchfest is connected.
-  instagramWidget: '',
+  // Instagram (primary): free Mirror App auto-feed embed. Paste the feed URL from
+  // mirror-app.com; it renders the latest posts in an auto-resizing iframe.
+  instagramEmbedUrl:
+    'https://app.mirror-app.com/feed-instagram/4985d2df-3ac8-49cd-92bf-6d7e5e53017f/preview',
+  // Fallback: official, free IG post-embed permalinks (used only if no embed URL).
+  // Also overridable from the sheet's "instagram" tab. Empty → a Follow CTA shows.
+  instagramPosts: [],
   typekitId: 'tkh3pir', // Adobe Fonts kit → juniper-std
   artist: {
     name: 'Chad Turner',
@@ -73,6 +77,13 @@ export const THEME = {
 // fetch returns no usable rows and the static ANNOUNCEMENTS fallback is shown.
 export const SHEET_ANNOUNCEMENTS_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1y9lyzBSTLm2IMGUn0z2x9ZGi900ndmdzkX7X52jogeg/gviz/tq?tqx=out:csv&sheet=updates';
+
+// Instagram post embeds (no-code): add a tab named "instagram" with a column
+// "url" and paste post permalinks (https://www.instagram.com/p/XXXX/), one per
+// row. They render as official IG embeds. Falls back to THEME.instagramPosts,
+// then to a Follow CTA. Add the tab to the master doc; until then, nothing breaks.
+export const SHEET_INSTAGRAM_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/1y9lyzBSTLm2IMGUn0z2x9ZGi900ndmdzkX7X52jogeg/gviz/tq?tqx=out:csv&sheet=instagram';
 
 export const ANNOUNCEMENTS = [
   {

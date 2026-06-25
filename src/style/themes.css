@@ -293,6 +293,22 @@ body.theme-2026 {
   min-height: 80px;
 }
 
+/* Grid of official IG post embeds */
+.ty-ig--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  justify-items: center;
+  align-items: start;
+}
+
+.ty-ig--grid .instagram-media {
+  width: 100% !important;
+  max-width: 400px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
 .ty-ig-cta {
   display: flex;
   flex-direction: column;

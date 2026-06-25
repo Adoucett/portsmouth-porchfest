@@ -80,3 +80,28 @@ export function fetchAnnouncements(url) {
     });
   });
 }
+
+// Fetches the "instagram" tab and returns an array of post permalink URLs from a
+// `url` column (or the first column). Resolves to [] on any error so the caller
+// can fall back. Only valid-looking instagram.com/p|reel links are kept.
+export function fetchInstagramPosts(url) {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve([]);
+      return;
+    }
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (h) => h.trim().toLowerCase(),
+      complete: ({ data }) => {
+        const links = (data || [])
+          .map((r) => (r.url || r.link || r.post || Object.values(r)[0] || '').trim())
+          .filter((u) => /instagram\.com\/(p|reel)\//.test(u));
+        resolve(links);
+      },
+      error: () => resolve([]),
+    });
+  });
+}
