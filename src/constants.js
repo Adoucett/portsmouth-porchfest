@@ -41,8 +41,7 @@ export const THEME = {
   howTo: [
     'Take public transit when you can',
     'Plan your porch route ahead of time',
-    'Enjoy the non-alcoholic food & drink',
-    'Use the sidewalks — keep streets clear for safety',
+    'Use the sidewalks for walking — keep streets clear for safety',
     'Be considerate of neighbors and their yards',
   ],
   // The organizers' goal for the year (from the Linktree).
@@ -168,7 +167,7 @@ export const MAP_DEFAULTS = {
 // Homepage copy (from the organizers). Edit freely.
 export const ABOUT = {
   whatWeAre:
-    'Portsmouth Porchfest is a free grassroots music festival that takes place in our neighborhoods once a year and features music by a diverse array of local musicians performing in many genres.',
+    'Portsmouth Porchfest is a free grassroots music festival that takes place in the neighborhoods of Portsmouth, NH once a year and features music by a diverse array of local musicians performing in many genres.',
   mission:
     'To strengthen the Portsmouth community, build connections between neighbors, and provide exposure for local artists from a diverse array of backgrounds.',
   vision:
@@ -222,7 +221,7 @@ export const FAQ = [
   },
   {
     q: 'Are there bathrooms?',
-    a: 'Public bathrooms are available at the Portsmouth Public Library.',
+    a: 'Public bathrooms are available at the Portsmouth Public Library. The Historical Society and the parking garages are also available — supposedly. The City of Portsmouth publishes a <a href="https://files.cityofportsmouth.com/community/Public%20Restrooms_5-24.pdf" target="_blank" rel="noopener">list of public restroom locations</a>, though it can be a bit clunky and may not help much.',
   },
   {
     q: 'Will there be food or alcohol?',

@@ -60,7 +60,8 @@ function renderFooter() {
     </nav>
     <p class="site-footer__fine">
       Portsmouth Porchfest · ${FESTIVAL.location} · A free community event.
-    </p>`;
+    </p>
+    <p class="site-footer__credit">Website developed by Aaron Doucett</p>`;
 }
 
 // Fill any [data-festival="key"] element with FESTIVAL[key], and set hrefs on
