@@ -62,7 +62,6 @@ function showMapMessage(container, title, body) {
 
 function setupLayers() {
   if (!map || mapReady) return;
-  mapReady = true;
 
   addDataLayers();
   // Info booths are DOM markers — they persist across setStyle, so add once.
@@ -70,6 +69,7 @@ function setupLayers() {
   applyMaritimeTint();
   // Layer-id-delegated handlers persist across setStyle, so wire once.
   wireInteractions();
+  mapReady = true;
   if (latestData.features.length) fitToData();
   map.resize();
 }
@@ -145,7 +145,7 @@ function addDataLayers() {
   }
 
   const src = map.getSource(SRC_BANDS);
-  if (src) src.setData(spreadCoincident(latestData));
+  if (src) src.setData(latestData);
   updateZoneFills();
   applyFilter();
   applyBasemapStyling();
@@ -256,7 +256,9 @@ function wireInteractions() {
       closePanel();
       return;
     }
-    openDetails(dedupe(feats.map(toItem)));
+    // Expand to every act at this porch (coincident markers stack into one dot).
+    const first = feats[0];
+    openDetails(dedupe(bandsAtCoord(first.geometry.coordinates)));
   });
 
   document.getElementById('map-panel-close')?.addEventListener('click', closePanel);
@@ -649,8 +651,7 @@ export function focusBand(feature) {
   if (!map || !feature || !feature.geometry) return;
   const coords = feature.geometry.coordinates;
   map.flyTo({ center: coords, zoom: 16, duration: 800, essential: true });
-  const props = feature.properties || {};
-  openDetails([{ kind: props.kind === 'booth' ? 'booth' : 'band', props, coords }]);
+  openDetails(dedupe(bandsAtCoord(coords)));
 }
 
 function applyFilter() {
