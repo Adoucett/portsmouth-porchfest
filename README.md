@@ -9,36 +9,21 @@ Free grassroots neighborhood music festival · Portsmouth, NH · September 19, 2
 | Environment | URL | Branch |
 |---|---|---|
 | **Production** (live site) | https://www.portsmouthporchfest.org | `main` |
-| **Staging** (in-progress work) | https://portsmouth-porchfest-git-dev-adoucetts-projects.vercel.app | `dev` |
 
-Staging is search-engine blocked by Vercel automatically. No noindex config needed.
-
----
-
-## Go live (promote staging → production)
-
-When staging looks ready:
-
-```bash
-./scripts/go-live.sh
-```
-
-That's it. The script merges `dev` into `main`, pushes, and Vercel deploys to the live domain within ~60 seconds.
+Vercel auto-deploys every push to `main`.
 
 ---
 
 ## Day-to-day development
 
-All work goes on the `dev` branch. Push to `dev` and the staging URL auto-updates.
+Ship directly to production on `main`:
 
 ```bash
-git checkout dev
+git checkout main
 # ... make changes ...
 git add . && git commit -m "your message"
-git push origin dev    # staging auto-deploys
+git push origin main    # live site updates in ~60s
 ```
-
-Never commit directly to `main`.
 
 ---
 
