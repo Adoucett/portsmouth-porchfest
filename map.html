@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Map & Schedule · Portsmouth Porchfest 2026</title>
+    <meta
+      name="description"
+      content="Live map of every Portsmouth Porchfest performance. Filter by zone, search bands, and get directions to the next porch."
+    />
+    <meta name="theme-color" content="#F5F1E8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..900,0..100,0..1;1,9..144,400..900,0..100,0..1&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header id="site-nav"></header>
+
+    <main class="map-page">
+      <section class="map-page__intro container">
+        <p class="eyebrow">Schedule &amp; Map</p>
+        <h1 class="map-page__title">Find your next porch.</h1>
+        <div class="schedule-strip" id="schedule-strip"></div>
+      </section>
+
+      <div class="map-controls">
+        <div class="filter-bar" id="zone-pills" role="group" aria-label="Filter performers by zone"></div>
+        <label class="map-search">
+          <span class="visually-hidden">Search bands</span>
+          <input id="band-search" type="search" placeholder="Search bands…" autocomplete="off" enterkeyhint="search" />
+        </label>
+      </div>
+
+      <div class="map-shell">
+        <p class="map-loading" id="map-loading">Loading map…</p>
+        <div class="map-wrap">
+          <div id="map-canvas" class="map-canvas" role="application" aria-label="Portsmouth Porchfest performance map"></div>
+          <aside class="map-panel" id="map-panel" aria-label="Performer details">
+            <button class="map-panel__close" id="map-panel-close" type="button" aria-label="Close panel">×</button>
+            <div class="map-panel__body" id="map-panel-body"></div>
+          </aside>
+          <div class="map-results" id="map-results" role="listbox" aria-label="Search results" hidden></div>
+          <button class="map-basemap" id="map-basemap" type="button" aria-pressed="false" title="Toggle satellite view">Satellite</button>
+        </div>
+      </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+
+    <script type="module" src="/src/pages/map.js"></script>
+  </body>
+</html>

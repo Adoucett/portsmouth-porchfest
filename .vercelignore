@@ -1,0 +1,14 @@
+# Never upload these to Vercel. Vercel installs deps and builds from source.
+node_modules
+dist
+.git
+
+# PRIVATE organizer Google Drive dump — must NEVER be deployed.
+no_commit
+**/no_commit
+
+# Local/editor cruft
+.env
+.env.*
+*.log
+.DS_Store
