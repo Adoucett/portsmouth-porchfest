@@ -207,7 +207,11 @@ function applyMaritimeTint() {
   }
 }
 
-// Info booths as DOM "i" markers (their click opens the panel/sheet).
+// Info booths as DOM "i" markers. Always drawn as their own icon — even when a
+// band shares the address — nudged NE in screen space so they never sit under
+// a band circle.
+const INFO_BOOTH_OFFSET = [16, -16]; // px [x, y]; positive x = right, negative y = up
+
 function addInfoBooths() {
   for (const booth of INFO_BOOTHS) {
     const node = document.createElement('button');
@@ -226,7 +230,13 @@ function addInfoBooths() {
       // include any bands playing at this same address
       openDetails([...bandsAtCoord(booth.coords), boothItem]);
     });
-    new mapboxgl.Marker({ element: node, anchor: 'center' }).setLngLat(booth.coords).addTo(map);
+    new mapboxgl.Marker({
+      element: node,
+      anchor: 'center',
+      offset: INFO_BOOTH_OFFSET,
+    })
+      .setLngLat(booth.coords)
+      .addTo(map);
   }
 }
 
@@ -295,13 +305,25 @@ function dedupe(items) {
 
 // ------------------------------------------------------------------- tooltip
 
+// Hover: stacked list of every act at this porch (name + set time), ordered by
+// set time. Single-act porches render as one row.
 function showTooltip(f) {
-  const p = f.properties || {};
-  const isBooth = p.kind === 'booth';
-  const name = isBooth ? p.name || 'Info booth' : p.name || 'Performer';
-  const sub = isBooth
-    ? 'Information booth'
-    : [p.genre, [p.time_start, p.time_end].filter(Boolean).join('–')].filter(Boolean).join(' · ');
+  const items = bandsAtCoord(f.geometry.coordinates)
+    .filter((it) => it.kind !== 'booth')
+    .sort(
+      (a, b) => timeToMinutes(a.props.time_start) - timeToMinutes(b.props.time_start)
+    );
+
+  const rows = (items.length ? items : [toItem(f)]).map((it) => {
+    const p = it.props || {};
+    const name = p.name || 'Performer';
+    const time = [p.time_start, p.time_end].filter(Boolean).join('–');
+    return `<div class="band-tooltip__row">
+      <strong>${esc(name)}</strong>
+      ${time ? `<span>${esc(time)}</span>` : ''}
+    </div>`;
+  });
+
   if (!tooltip) {
     tooltip = new mapboxgl.Popup({
       closeButton: false,
@@ -312,7 +334,7 @@ function showTooltip(f) {
   }
   tooltip
     .setLngLat(f.geometry.coordinates)
-    .setHTML(`<strong>${esc(name)}</strong>${sub ? `<span>${esc(sub)}</span>` : ''}`)
+    .setHTML(rows.join(''))
     .addTo(map);
 }
 

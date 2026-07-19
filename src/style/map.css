@@ -522,7 +522,7 @@ body.map-route .site-footer {
   }
 }
 
-/* ---- Hover tooltip ---- */
+/* ---- Hover tooltip (stacked when 2+ acts share a porch) ---- */
 .mapboxgl-popup.band-tooltip {
   z-index: 5;
 }
@@ -530,25 +530,39 @@ body.map-route .site-footer {
 .mapboxgl-popup.band-tooltip .mapboxgl-popup-content {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 0.4rem 0.6rem;
+  gap: 0;
+  padding: 0.35rem 0.55rem;
   background: var(--ink);
   color: var(--paper);
   border: 0;
   border-radius: 4px;
   box-shadow: 0 4px 14px rgba(26, 26, 24, 0.25);
   pointer-events: none;
+  min-width: 10rem;
 }
 
-.mapboxgl-popup.band-tooltip .mapboxgl-popup-content strong {
+.band-tooltip__row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0.28rem 0;
+}
+
+.band-tooltip__row + .band-tooltip__row {
+  border-top: 1px solid rgba(245, 241, 232, 0.18);
+}
+
+.mapboxgl-popup.band-tooltip .band-tooltip__row strong {
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.82rem;
+  line-height: 1.2;
 }
 
-.mapboxgl-popup.band-tooltip .mapboxgl-popup-content span {
+.mapboxgl-popup.band-tooltip .band-tooltip__row span {
   font-size: 0.7rem;
   opacity: 0.78;
+  line-height: 1.2;
 }
 
 .mapboxgl-popup.band-tooltip .mapboxgl-popup-tip {
