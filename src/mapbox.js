@@ -218,9 +218,13 @@ function addInfoBooths() {
     node.textContent = 'i';
     node.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      openDetails([
-        { kind: 'booth', props: { name: booth.name, note: booth.note }, coords: booth.coords },
-      ]);
+      const boothItem = {
+        kind: 'booth',
+        props: { name: booth.name, note: booth.note },
+        coords: booth.coords,
+      };
+      // include any bands playing at this same address
+      openDetails([...bandsAtCoord(booth.coords), boothItem]);
     });
     new mapboxgl.Marker({ element: node, anchor: 'center' }).setLngLat(booth.coords).addTo(map);
   }
@@ -323,54 +327,33 @@ function openDetails(items) {
   else openSheet(items);
 }
 
-// Render either a single detail or a pickable list (when several things share
-// one spot — e.g. two bands on one porch, or a band + an info booth).
+// One act → its detail. Multiple acts at a venue → a stacked venue view: the
+// address, then each performer's card ordered by set time (info booth last).
 function renderContent(container, items) {
   if (items.length === 1) {
     container.innerHTML = detailHTML(items[0]);
     return;
   }
-  container.innerHTML = listHTML(items);
-  container.querySelectorAll('[data-idx]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      container.innerHTML =
-        `<button class="detail__back" type="button">← All ${items.length} here</button>` +
-        detailHTML(items[Number(btn.dataset.idx)]);
-      container
-        .querySelector('.detail__back')
-        ?.addEventListener('click', () => renderContent(container, items));
-      container.scrollTop = 0;
-    });
+  const sorted = [...items].sort((a, b) => {
+    if (a.kind === 'booth') return 1;
+    if (b.kind === 'booth') return -1;
+    return timeToMinutes(a.props.time_start) - timeToMinutes(b.props.time_start);
   });
+  const address = sorted.find((it) => it.props && it.props.address)?.props.address || '';
+  const setCount = sorted.filter((it) => it.kind !== 'booth').length;
+  container.innerHTML = `
+    <div class="venue">
+      <div class="venue__head">
+        <span class="detail__genre">${setCount} ${setCount === 1 ? 'set' : 'sets'} at this porch</span>
+        ${address ? `<h3 class="venue__addr">${esc(address)}</h3>` : ''}
+      </div>
+      <div class="venue__list">
+        ${sorted.map((it) => detailHTML(it, { hideAddress: true })).join('')}
+      </div>
+    </div>`;
 }
 
-function listHTML(items) {
-  return `<div class="panel-list">
-    <p class="panel-list__head">${items.length} at this spot</p>
-    ${items
-      .map((it, i) => {
-        const p = it.props || {};
-        const color =
-          it.kind === 'booth' ? '#1a1a18' : ZONE_COLORS[String(p.zone)] || DEFAULT_MARKER_COLOR;
-        const name = it.kind === 'booth' ? p.name || 'Info booth' : p.name || 'Performer';
-        const meta =
-          it.kind === 'booth'
-            ? 'Information booth'
-            : [p.genre, [p.time_start, p.time_end].filter(Boolean).join('–')]
-                .filter(Boolean)
-                .join(' · ');
-        return `<button class="panel-list__item" type="button" data-idx="${i}">
-          <span class="panel-list__dot" style="background:${color}"></span>
-          <span class="panel-list__text"><strong>${esc(name)}</strong>${
-            meta ? `<span>${esc(meta)}</span>` : ''
-          }</span>
-        </button>`;
-      })
-      .join('')}
-  </div>`;
-}
-
-function detailHTML(item) {
+function detailHTML(item, opts = {}) {
   const p = item.props || {};
 
   if (item.kind === 'booth') {
@@ -390,21 +373,24 @@ function detailHTML(item) {
     Number.isFinite(lat) && Number.isFinite(lng)
       ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`
       : null;
-  const img = p.image || p.photo;
+  const imgs = [p.image || p.photo, p.image_2].filter(Boolean);
 
   return `<div class="detail">
     ${
-      img
-        ? `<div class="detail__media"><img class="detail__img" src="${esc(
-            img
-          )}" alt="" loading="lazy" onerror="this.closest('.detail__media')?.remove()" /></div>`
+      imgs.length
+        ? `<div class="detail__media">${imgs
+            .map(
+              (u) =>
+                `<img class="detail__img" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()" />`
+            )
+            .join('')}</div>`
         : ''
     }
     <div class="detail__body">
       ${p.genre ? `<span class="detail__genre">${esc(p.genre)}</span>` : ''}
       <h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>
       ${time ? `<p class="detail__time">${esc(time)}${p.zone ? ` · ${esc(zoneLabel(p.zone))}` : ''}</p>` : ''}
-      ${p.address ? `<p class="detail__addr">${esc(p.address)}</p>` : ''}
+      ${p.address && !opts.hideAddress ? `<p class="detail__addr">${esc(p.address)}</p>` : ''}
       ${p.description ? `<p class="detail__desc">${esc(p.description)}</p>` : ''}
       <div class="detail__actions">
         ${directions ? `<a class="detail__btn" href="${directions}" target="_blank" rel="noopener">Walking directions</a>` : ''}
@@ -461,53 +447,33 @@ export function setBandData(geojson) {
   if (!map || !mapReady) return;
   const src = map.getSource(SRC_BANDS);
   if (src) {
-    src.setData(spreadCoincident(latestData));
+    // One dot per venue: bands sharing an address stack into a single marker and
+    // are shown together (time-ordered) in the panel — no fan-out.
+    src.setData(latestData);
     updateZoneFills();
     applyFilter();
     fitToData();
   }
 }
 
-const boothKeys = new Set(INFO_BOOTHS.map((b) => coordKey(b.coords)));
-
 function coordKey(c) {
   return `${(+c[0]).toFixed(6)},${(+c[1]).toFixed(6)}`;
 }
 
-// Fan out markers that sit at the same coordinate (multiple bands on one porch,
-// or a band sharing an info booth's address) so every dot stays visible and
-// clickable. They shift only ~15m — still the same house. The booth marker keeps
-// the true center; bands ring around it.
-function spreadCoincident(fc) {
-  const groups = new Map();
-  for (const f of fc.features) {
-    const k = coordKey(f.geometry.coordinates);
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(f);
-  }
-  const R = 0.00014; // ~15m
-  const out = [];
-  for (const [key, members] of groups) {
-    const boothHere = boothKeys.has(key);
-    if (members.length === 1 && !boothHere) {
-      out.push(members[0]);
-      continue;
-    }
-    const [lng, lat] = members[0].geometry.coordinates;
-    const kx = Math.cos((lat * Math.PI) / 180) || 1;
-    const n = members.length;
-    members.forEach((m, i) => {
-      const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
-      out.push({
-        ...m,
-        geometry: {
-          type: 'Point',
-          coordinates: [lng + ((R / kx) * Math.cos(angle)), lat + R * Math.sin(angle)],
-        },
-      });
-    });
-  }
-  return { type: 'FeatureCollection', features: out };
+// All band features at a given coordinate (for a venue's stacked list).
+function bandsAtCoord(coords) {
+  const key = coordKey(coords);
+  return latestData.features
+    .filter((f) => coordKey(f.geometry.coordinates) === key)
+    .map(toItem);
+}
+
+function timeToMinutes(t) {
+  const m = /(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(t || '');
+  if (!m) return 99999;
+  let h = +m[1] % 12;
+  if (/pm/i.test(m[3] || '')) h += 12;
+  return h * 60 + +m[2];
 }
 
 function fitToData() {

@@ -620,6 +620,29 @@ body.map-route .site-footer {
   cursor: pointer;
 }
 
+/* ---- Venue view: multiple acts at one porch, ordered by set time ---- */
+.venue__head {
+  padding: 1.1rem 1.2rem 0.5rem;
+}
+
+.venue__addr {
+  font-size: 1.05rem;
+  margin-top: 0.15rem;
+}
+
+.venue__list > .detail {
+  border-top: var(--line);
+}
+
+.venue__list > .detail:first-child {
+  border-top: 0;
+}
+
+/* Second band photo stacks under the first */
+.detail__media .detail__img + .detail__img {
+  margin-top: 2px;
+}
+
 /* ---- Basemap (satellite) toggle ---- */
 .map-basemap {
   position: absolute;
