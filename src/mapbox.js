@@ -373,19 +373,8 @@ function detailHTML(item, opts = {}) {
     Number.isFinite(lat) && Number.isFinite(lng)
       ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`
       : null;
-  const imgs = [p.image || p.photo, p.image_2].filter(Boolean);
-
   return `<div class="detail">
-    ${
-      imgs.length
-        ? `<div class="detail__media">${imgs
-            .map(
-              (u) =>
-                `<img class="detail__img" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()" />`
-            )
-            .join('')}</div>`
-        : ''
-    }
+    ${mediaHTML(collectImages(p))}
     <div class="detail__body">
       ${p.genre ? `<span class="detail__genre">${esc(p.genre)}</span>` : ''}
       <h3 class="detail__name">${esc(p.name) || 'Performer'}</h3>
@@ -400,12 +389,97 @@ function detailHTML(item, opts = {}) {
   </div>`;
 }
 
+// Gather a band's photos from image, image_2…image_6, and an optional comma/
+// pipe/newline-separated `images` column. Deduped, in order.
+function collectImages(p) {
+  const out = [];
+  const push = (v) => {
+    const s = String(v ?? '').trim();
+    if (s) out.push(s);
+  };
+  push(p.image || p.photo);
+  for (let n = 2; n <= 6; n++) push(p['image_' + n]);
+  if (p.images) String(p.images).split(/[|,\n]/).forEach(push);
+  return [...new Set(out)];
+}
+
+// 0 → nothing, 1 → single image, 2+ → a carousel (wired up by initCarousels).
+function mediaHTML(imgs) {
+  if (!imgs.length) return '';
+  if (imgs.length === 1) {
+    return `<div class="detail__media"><img class="detail__img" src="${esc(
+      imgs[0]
+    )}" alt="" loading="lazy" onerror="this.closest('.detail__media')?.remove()" /></div>`;
+  }
+  return `<div class="carousel" data-carousel>
+    <div class="carousel__track">
+      ${imgs
+        .map(
+          (u) =>
+            `<img class="carousel__img" src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'" />`
+        )
+        .join('')}
+    </div>
+    <button class="carousel__btn carousel__btn--prev" type="button" aria-label="Previous photo">‹</button>
+    <button class="carousel__btn carousel__btn--next" type="button" aria-label="Next photo">›</button>
+    <div class="carousel__dots">
+      ${imgs
+        .map(
+          (_, i) =>
+            `<button class="carousel__dot${i === 0 ? ' is-active' : ''}" type="button" data-i="${i}" aria-label="Photo ${i + 1}"></button>`
+        )
+        .join('')}
+    </div>
+  </div>`;
+}
+
+// Wire any carousels inside a freshly-rendered container (arrows, dots, swipe).
+function initCarousels(root) {
+  root.querySelectorAll('[data-carousel]').forEach((c) => {
+    if (c.dataset.init) return;
+    c.dataset.init = '1';
+    const track = c.querySelector('.carousel__track');
+    const dots = [...c.querySelectorAll('.carousel__dot')];
+    const n = track.children.length;
+    let i = 0;
+    const go = (to) => {
+      i = (to + n) % n;
+      track.style.transform = `translateX(-${i * 100}%)`;
+      dots.forEach((d, di) => d.classList.toggle('is-active', di === i));
+    };
+    c.querySelector('.carousel__btn--prev').addEventListener('click', (e) => {
+      e.stopPropagation();
+      go(i - 1);
+    });
+    c.querySelector('.carousel__btn--next').addEventListener('click', (e) => {
+      e.stopPropagation();
+      go(i + 1);
+    });
+    dots.forEach((d) =>
+      d.addEventListener('click', (e) => {
+        e.stopPropagation();
+        go(Number(d.dataset.i));
+      })
+    );
+    let x0 = null;
+    track.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', (e) => {
+      if (x0 == null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+      x0 = null;
+    });
+    go(0);
+  });
+}
+
 // Desktop: left-side panel overlay.
 function openPanel(items) {
   const panel = document.getElementById('map-panel');
   const body = document.getElementById('map-panel-body');
   if (!panel || !body) return;
   renderContent(body, items);
+  initCarousels(body);
   body.scrollTop = 0;
   panel.classList.add('is-open');
 }
@@ -432,7 +506,9 @@ function openSheet(items) {
       if (e.target === sheet) closeSheet();
     });
   }
-  renderContent(sheet.querySelector('.bottom-sheet__body'), items);
+  const body = sheet.querySelector('.bottom-sheet__body');
+  renderContent(body, items);
+  initCarousels(body);
   requestAnimationFrame(() => sheet.classList.add('is-open'));
 }
 

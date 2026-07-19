@@ -643,6 +643,80 @@ body.map-route .site-footer {
   margin-top: 2px;
 }
 
+/* ---- Band photo carousel (2+ images) ---- */
+.carousel {
+  position: relative;
+  background: var(--color-bg-sunken);
+  overflow: hidden;
+}
+
+.carousel__track {
+  display: flex;
+  transition: transform 0.32s var(--ease-out);
+}
+
+.carousel__img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: auto;
+  max-height: clamp(150px, 42vw, 320px);
+  object-fit: contain;
+  display: block;
+}
+
+.carousel__btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(26, 26, 24, 0.55);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.carousel__btn:hover {
+  background: rgba(26, 26, 24, 0.82);
+}
+
+.carousel__btn--prev {
+  left: 0.4rem;
+}
+
+.carousel__btn--next {
+  right: 0.4rem;
+}
+
+.carousel__dots {
+  position: absolute;
+  bottom: 0.45rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.carousel__dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+}
+
+.carousel__dot.is-active {
+  background: #fff;
+}
+
 /* ---- Basemap (satellite) toggle ---- */
 .map-basemap {
   position: absolute;
