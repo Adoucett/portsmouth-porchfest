@@ -267,8 +267,10 @@ function wireInteractions() {
       return;
     }
     // Expand to every act at this porch (coincident markers stack into one dot).
+    // Use the clicked feature's exact lat/lng properties, NOT the rendered
+    // geometry (which is snapped to the tile grid and won't match the source).
     const first = feats[0];
-    openDetails(dedupe(bandsAtCoord(first.geometry.coordinates)));
+    openDetails(dedupe(bandsAtCoord(featureCoords(first))));
   });
 
   document.getElementById('map-panel-close')?.addEventListener('click', closePanel);
@@ -308,7 +310,8 @@ function dedupe(items) {
 // Hover: stacked list of every act at this porch (name + set time), ordered by
 // set time. Single-act porches render as one row.
 function showTooltip(f) {
-  const items = bandsAtCoord(f.geometry.coordinates)
+  const coords = featureCoords(f);
+  const items = bandsAtCoord(coords)
     .filter((it) => it.kind !== 'booth')
     .sort(
       (a, b) => timeToMinutes(a.props.time_start) - timeToMinutes(b.props.time_start)
@@ -333,7 +336,7 @@ function showTooltip(f) {
     });
   }
   tooltip
-    .setLngLat(f.geometry.coordinates)
+    .setLngLat(coords)
     .setHTML(rows.join(''))
     .addTo(map);
 }
@@ -560,11 +563,24 @@ function coordKey(c) {
   return `${(+c[0]).toFixed(6)},${(+c[1]).toFixed(6)}`;
 }
 
+// Exact venue coordinate for a feature. Mapbox's queryRenderedFeatures (and the
+// features on map events) return geometry SNAPPED to the tile grid, so their
+// coordinates are imprecise and never match the source lat/lng at 6-decimal
+// precision. The row's own lat/lng properties are preserved exactly, so prefer
+// them for venue grouping and only fall back to geometry if they're missing.
+function featureCoords(feature) {
+  const p = (feature && feature.properties) || {};
+  const lng = parseFloat(p.lng);
+  const lat = parseFloat(p.lat);
+  if (Number.isFinite(lng) && Number.isFinite(lat)) return [lng, lat];
+  return (feature && feature.geometry && feature.geometry.coordinates) || [NaN, NaN];
+}
+
 // All band features at a given coordinate (for a venue's stacked list).
 function bandsAtCoord(coords) {
   const key = coordKey(coords);
   return latestData.features
-    .filter((f) => coordKey(f.geometry.coordinates) === key)
+    .filter((f) => coordKey(featureCoords(f)) === key)
     .map(toItem);
 }
 
@@ -671,7 +687,7 @@ export function setSearchFilter(text) {
 // sheet on mobile). Used by the search results list on the map page.
 export function focusBand(feature) {
   if (!map || !feature || !feature.geometry) return;
-  const coords = feature.geometry.coordinates;
+  const coords = featureCoords(feature);
   map.flyTo({ center: coords, zoom: 16, duration: 800, essential: true });
   openDetails(dedupe(bandsAtCoord(coords)));
 }

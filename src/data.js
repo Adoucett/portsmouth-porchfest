@@ -29,6 +29,10 @@ export function rowsToGeoJSON(rows) {
       const lng = parseFloat(row.lng);
       const lat = parseFloat(row.lat);
       if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+      // Drop blank spacer rows (valid coords but no name AND no address). These
+      // are accidental empty rows in the sheet; keeping them would stack a
+      // phantom empty card onto whatever porch shares their coordinates.
+      if (!String(row.name ?? '').trim() && !String(row.address ?? '').trim()) return null;
       return {
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [lng, lat] },
